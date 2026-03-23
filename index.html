@@ -1,101 +1,193 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GeminiFlix</title><script src="https://cdn.tailwindcss.com"></script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>
-body{background:#141414;font-family:Inter,sans-serif}
-.scrollbar-hide::-webkit-scrollbar{display:none}
-.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}
-.banner-fade-bottom{height:7.4rem;background-image:linear-gradient(180deg,transparent,rgba(37,37,37,.61),#141414)}
-#player-container{aspect-ratio:16/9}
-</style></head><body class="text-white"><nav class="fixed top-0 left-0 right-0 z-50 p-4 bg-black/70 backdrop-blur">
-<h1 class="text-2xl font-bold text-red-600">GeminiFlix</h1>
-</nav><header id="banner" class="relative bg-cover bg-center" style="height:56.25vw;max-height:700px">
-<div class="ml-8 pt-48">
-<h1 id="banner-title" class="text-5xl font-extrabold"></h1>
-<p id="banner-description" class="w-1/2 mt-3"></p>
+<title>GeminiFlix</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+background:#141414;
+color:white;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+.row{
+margin-left:20px;
+}
+
+.row-posters{
+display:flex;
+overflow-x:auto;
+padding:20px;
+}
+
+.row-posters img{
+max-height:180px;
+margin-right:10px;
+cursor:pointer;
+transition:transform .2s;
+}
+
+.row-posters img:hover{
+transform:scale(1.08);
+}
+
+#playerModal{
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:black;
+z-index:999;
+display:none;
+}
+
+#playerFrame{
+width:100%;
+height:100%;
+border:none;
+}
+
+.closeBtn{
+position:absolute;
+top:15px;
+right:15px;
+background:red;
+padding:8px 14px;
+cursor:pointer;
+z-index:1000;
+}
+
+header{
+height:60vh;
+background-size:cover;
+background-position:center;
+padding:40px;
+}
+
+.banner-title{
+font-size:40px;
+font-weight:bold;
+}
+
+.banner-desc{
+width:45%;
+}
+</style>
+</head>
+
+<body>
+
+<header id="banner">
+<h1 id="banner-title" class="banner-title"></h1>
+<p id="banner-desc" class="banner-desc"></p>
+</header>
+
+<div id="rows"></div>
+
+<!-- PLAYER -->
+<div id="playerModal">
+<div class="closeBtn" onclick="closePlayer()">CLOSE</div>
+<iframe id="playerFrame" allowfullscreen allow="autoplay; encrypted-media"></iframe>
 </div>
-<div class="absolute bottom-0 left-0 right-0 banner-fade-bottom"></div>
-</header><main id="rows" class="px-6 mt-6"></main><!-- PLAYER MODAL --><div id="modal" class="hidden fixed inset-0 bg-black/90 z-50 p-4"><button onclick="closePlayer()" class="absolute top-4 right-4 bg-red-600 px-3 py-1 rounded">Close</button>
 
-<div id="player-container" class="w-full max-w-5xl mx-auto mt-12 bg-black">
-<iframe id="player" class="w-full h-full" allowfullscreen frameborder="0"></iframe>
-</div><h2 id="movie-title" class="text-2xl mt-4 text-center"></h2></div><script>
+<script>
 
-const API_KEY="2f7637ba9b3253a84483afa03480473a";
-const BASE="https://api.themoviedb.org/3";
-const IMG="https://image.tmdb.org/t/p/original";
+const API_KEY = "2f7637ba9b3253a84483afa03480473a";
+const BASE = "https://api.themoviedb.org/3";
+const IMG = "https://image.tmdb.org/t/p/original";
 
-const requests={
-trending:`/trending/all/week?api_key=${API_KEY}`,
+const requests = {
+trending:`/trending/movie/week?api_key=${API_KEY}`,
 top:`/movie/top_rated?api_key=${API_KEY}`,
 action:`/discover/movie?api_key=${API_KEY}&with_genres=28`,
 comedy:`/discover/movie?api_key=${API_KEY}&with_genres=35`,
 horror:`/discover/movie?api_key=${API_KEY}&with_genres=27`
 };
 
-async function fetchData(url){
-const r=await fetch(BASE+url);
-const j=await r.json();
-return j.results;
+async function fetchMovies(url){
+const res = await fetch(BASE + url);
+const data = await res.json();
+return data.results;
 }
 
 function createRow(title,movies){
-const rows=document.getElementById("rows");
 
-const row=document.createElement("div");
-row.className="mb-8";
+const row = document.createElement("div");
+row.className="row";
 
-const h=document.createElement("h2");
-h.textContent=title;
-h.className="text-xl font-bold mb-2";
+const h2 = document.createElement("h2");
+h2.textContent = title;
 
-const list=document.createElement("div");
-list.className="flex overflow-x-scroll scrollbar-hide";
+const posters = document.createElement("div");
+posters.className="row-posters";
 
-movies.forEach(m=>{
-if(!m.poster_path) return;
+movies.forEach(movie=>{
 
-const img=document.createElement("img");
-img.src=IMG+m.poster_path;
-img.className="max-h-56 mr-3 cursor-pointer hover:scale-105 transition";
+if(!movie.poster_path) return;
 
-img.onclick=()=>playMovie(m);
+const img = document.createElement("img");
+img.src = IMG + movie.poster_path;
 
-list.appendChild(img);
+img.onclick = ()=> playMovie(movie);
+
+posters.appendChild(img);
+
 });
 
-row.appendChild(h);
-row.appendChild(list);
-rows.appendChild(row);
+row.appendChild(h2);
+row.appendChild(posters);
+
+document.getElementById("rows").appendChild(row);
 }
 
 function playMovie(movie){
 
-const id=movie.id;
-const type=movie.first_air_date?"tv":"movie";
+const id = movie.id;
 
-// FULL MOVIE PLAYER (vidsrc)
-const url=`https://vidsrc.to/embed/${type}/${id}`;
+const servers = [
 
-document.getElementById("player").src=url;
-document.getElementById("movie-title").textContent=movie.title||movie.name;
+`https://vidsrc.su/embed/movie/${id}`,
+`https://vidsrc.me/embed/movie/${id}`,
+`https://2embed.cc/embed/${id}`,
+`https://multiembed.mov/?video_id=${id}&tmdb=1`
 
-document.getElementById("modal").classList.remove("hidden");
+];
+
+let i=0;
+
+const player=document.getElementById("playerFrame");
+
+player.src = servers[i];
+
+player.onload=()=>{
+setTimeout(()=>{
+if(i<servers.length-1){
+i++;
+player.src=servers[i];
+}
+},3000);
+};
+
+document.getElementById("playerModal").style.display="block";
 }
 
 function closePlayer(){
-document.getElementById("modal").classList.add("hidden");
-document.getElementById("player").src="";
+document.getElementById("playerModal").style.display="none";
+document.getElementById("playerFrame").src="";
 }
 
 (async()=>{
 
-const trending=await fetchData(requests.trending);
-const top=await fetchData(requests.top);
-const action=await fetchData(requests.action);
-const comedy=await fetchData(requests.comedy);
-const horror=await fetchData(requests.horror);
+const trending = await fetchMovies(requests.trending);
+const top = await fetchMovies(requests.top);
+const action = await fetchMovies(requests.action);
+const comedy = await fetchMovies(requests.comedy);
+const horror = await fetchMovies(requests.horror);
 
 createRow("Trending",trending);
 createRow("Top Rated",top);
@@ -103,14 +195,20 @@ createRow("Action",action);
 createRow("Comedy",comedy);
 createRow("Horror",horror);
 
-// banner
-const b=trending[Math.floor(Math.random()*trending.length)];
+const banner = trending[Math.floor(Math.random()*trending.length)];
 
-document.getElementById("banner").style.backgroundImage=`url(${IMG}${b.backdrop_path})`;
-document.getElementById("banner-title").textContent=b.title||b.name;
-document.getElementById("banner-description").textContent=b.overview;
+document.getElementById("banner").style.backgroundImage =
+`url(${IMG}${banner.backdrop_path})`;
+
+document.getElementById("banner-title").textContent =
+banner.title;
+
+document.getElementById("banner-desc").textContent =
+banner.overview;
 
 })();
 
-</script></body>
+</script>
+
+</body>
 </html>
