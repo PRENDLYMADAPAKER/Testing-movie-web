@@ -2,187 +2,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GeminiFlix</title><script src="https://cdn.tailwindcss.com"></script><link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>
-body {
-background-color: #141414;
-font-family: 'Inter', sans-serif;
-}
-
-.scrollbar-hide::-webkit-scrollbar { display:none }
-.scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none }
-
-.banner-fade-bottom {
-height: 7.4rem;
-background-image: linear-gradient(180deg, transparent, rgba(37,37,37,.61), #141414);
-}
-
-#modal-video-container { aspect-ratio:16/9 }
-
-.scroll-arrow {
-position:absolute;
-top:50%;
-transform:translateY(-50%);
-background-color:rgba(0,0,0,0.5);
-color:white;
-border:none;
-padding:0.5rem;
-cursor:pointer;
-z-index:10;
-opacity:0;
-transition:opacity .3s;
-border-radius:9999px;
-width:2.5rem;
-height:2.5rem;
-}
-
-.row-container:hover .scroll-arrow { opacity:1 }
-.scroll-arrow.left { left:.5rem }
-.scroll-arrow.right { right:.5rem }
-</style></head><body class="text-white"><nav id="navbar" class="fixed top-0 left-0 right-0 z-50 p-4 transition-colors duration-500">
-<div class="flex justify-between items-center">
-<div>
-<a href="#" class="text-2xl md:text-3xl font-extrabold text-red-600">
-GeminiFlix
-</a>
-</div>
-</div>
-</nav><header id="banner" class="relative text-white object-cover bg-cover bg-center" style="height:56.25vw; max-height:800px;">
-<div class="ml-8 pt-48 md:pt-56 h-full">
-<h1 id="banner-title" class="text-3xl md:text-6xl font-extrabold pb-2"></h1>
-<div class="flex space-x-2 my-4">
-<button id="banner-play-btn" class="bg-white text-black font-bold rounded px-6 py-2">
-Play
-</button>
-<button id="banner-info-btn" class="bg-gray-500 bg-opacity-70 text-white font-bold rounded px-6 py-2">
-More Info
-</button>
-</div>
-<p id="banner-description" class="w-full md:w-[45rem] max-w-sm md:max-w-md pt-2 text-xs md:text-sm h-24"></p>
+<title>GeminiFlix</title><script src="https://cdn.tailwindcss.com"></script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>
+body{background:#141414;font-family:Inter,sans-serif}
+.scrollbar-hide::-webkit-scrollbar{display:none}
+.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}
+.banner-fade-bottom{height:7.4rem;background-image:linear-gradient(180deg,transparent,rgba(37,37,37,.61),#141414)}
+#player-container{aspect-ratio:16/9}
+</style></head><body class="text-white"><nav class="fixed top-0 left-0 right-0 z-50 p-4 bg-black/70 backdrop-blur">
+<h1 class="text-2xl font-bold text-red-600">GeminiFlix</h1>
+</nav><header id="banner" class="relative bg-cover bg-center" style="height:56.25vw;max-height:700px">
+<div class="ml-8 pt-48">
+<h1 id="banner-title" class="text-5xl font-extrabold"></h1>
+<p id="banner-description" class="w-1/2 mt-3"></p>
 </div>
 <div class="absolute bottom-0 left-0 right-0 banner-fade-bottom"></div>
-</header><main id="movie-rows" class="px-4 md:px-10 pb-16"></main><div id="modal-overlay" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
-<div class="relative bg-zinc-900 w-full max-w-4xl rounded-lg shadow-lg overflow-hidden"><button id="modal-close-btn" class="absolute top-3 right-3 text-white bg-black bg-opacity-50 rounded-full h-8 w-8">
-X
-</button><div id="modal-video-container" class="w-full bg-black">
-<iframe id="youtube-player" class="w-full h-full" frameborder="0" allow="autoplay" allowfullscreen></iframe>
-</div><div class="p-6">
-<h2 id="modal-title" class="text-2xl font-bold"></h2>
-<p id="modal-description" class="text-sm mt-2 text-zinc-300"></p>
-</div></div>
-</div><script>
+</header><main id="rows" class="px-6 mt-6"></main><!-- PLAYER MODAL --><div id="modal" class="hidden fixed inset-0 bg-black/90 z-50 p-4"><button onclick="closePlayer()" class="absolute top-4 right-4 bg-red-600 px-3 py-1 rounded">Close</button>
 
-// ================= CONFIG =================
-const API_KEY = "2f7637ba9b3253a84483afa03480473a";
-const BASE_URL = "https://api.themoviedb.org/3";
-const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/original";
+<div id="player-container" class="w-full max-w-5xl mx-auto mt-12 bg-black">
+<iframe id="player" class="w-full h-full" allowfullscreen frameborder="0"></iframe>
+</div><h2 id="movie-title" class="text-2xl mt-4 text-center"></h2></div><script>
 
-const requests = {
-fetchNetflixOriginals: `/discover/tv?api_key=${API_KEY}&with_networks=213`,
-fetchTrending: `/trending/all/week?api_key=${API_KEY}&language=en-US`,
-fetchTopRated: `/movie/top_rated?api_key=${API_KEY}&language=en-US`,
-fetchActionMovies: `/discover/movie?api_key=${API_KEY}&with_genres=28`,
-fetchComedyMovies: `/discover/movie?api_key=${API_KEY}&with_genres=35`,
-fetchHorrorMovies: `/discover/movie?api_key=${API_KEY}&with_genres=27`,
-fetchRomanceMovies: `/discover/movie?api_key=${API_KEY}&with_genres=10749`,
-fetchSciFiMovies: `/discover/movie?api_key=${API_KEY}&with_genres=878`
+const API_KEY="2f7637ba9b3253a84483afa03480473a";
+const BASE="https://api.themoviedb.org/3";
+const IMG="https://image.tmdb.org/t/p/original";
+
+const requests={
+trending:`/trending/all/week?api_key=${API_KEY}`,
+top:`/movie/top_rated?api_key=${API_KEY}`,
+action:`/discover/movie?api_key=${API_KEY}&with_genres=28`,
+comedy:`/discover/movie?api_key=${API_KEY}&with_genres=35`,
+horror:`/discover/movie?api_key=${API_KEY}&with_genres=27`
 };
 
-// ================= FETCH =================
-async function fetchData(endpoint){
-const res = await fetch(BASE_URL + endpoint);
-const data = await res.json();
-return data.results || [];
+async function fetchData(url){
+const r=await fetch(BASE+url);
+const j=await r.json();
+return j.results;
 }
 
-// ================= CREATE ROW =================
-function createRow(title, movies, large=false){
+function createRow(title,movies){
+const rows=document.getElementById("rows");
 
-const container = document.getElementById("movie-rows");
+const row=document.createElement("div");
+row.className="mb-8";
 
-const row = document.createElement("div");
-row.className = "my-8";
+const h=document.createElement("h2");
+h.textContent=title;
+h.className="text-xl font-bold mb-2";
 
-const h2 = document.createElement("h2");
-h2.textContent = title;
-h2.className = "text-xl font-bold mb-2";
+const list=document.createElement("div");
+list.className="flex overflow-x-scroll scrollbar-hide";
 
-const list = document.createElement("div");
-list.className = "flex overflow-x-scroll scrollbar-hide";
+movies.forEach(m=>{
+if(!m.poster_path) return;
 
-movies.forEach(movie=>{
+const img=document.createElement("img");
+img.src=IMG+m.poster_path;
+img.className="max-h-56 mr-3 cursor-pointer hover:scale-105 transition";
 
-const img = document.createElement("img");
-img.src = IMAGE_BASE_URL + movie.poster_path;
-img.className = large
-? "max-h-60 mr-3 cursor-pointer"
-: "max-h-40 mr-3 cursor-pointer";
-
-img.onclick = ()=> openModal(movie);
+img.onclick=()=>playMovie(m);
 
 list.appendChild(img);
-
 });
 
-row.appendChild(h2);
+row.appendChild(h);
 row.appendChild(list);
-container.appendChild(row);
+rows.appendChild(row);
 }
 
-// ================= MODAL =================
-async function openModal(movie){
+function playMovie(movie){
 
-const res = await fetch(`${BASE_URL}/movie/${movie.id}?api_key=${API_KEY}&append_to_response=videos`);
-const data = await res.json();
+const id=movie.id;
+const type=movie.first_air_date?"tv":"movie";
 
-const trailer = data.videos.results.find(v=>v.type==="Trailer");
+// FULL MOVIE PLAYER (vidsrc)
+const url=`https://vidsrc.to/embed/${type}/${id}`;
 
-if(trailer){
+document.getElementById("player").src=url;
+document.getElementById("movie-title").textContent=movie.title||movie.name;
 
-document.getElementById("youtube-player").src = `https://www.youtube.com/embed/${trailer.key}`;
+document.getElementById("modal").classList.remove("hidden");
 }
 
-
-document.getElementById("modal-title").textContent = movie.title || movie.name;
-document.getElementById("modal-description").textContent = movie.overview;
-
-document.getElementById("modal-overlay").classList.remove("hidden");
+function closePlayer(){
+document.getElementById("modal").classList.add("hidden");
+document.getElementById("player").src="";
 }
 
-// ================= CLOSE =================
-document.getElementById("modal-close-btn").onclick = ()=>{
+(async()=>{
 
-document.getElementById("modal-overlay").classList.add("hidden");
-document.getElementById("youtube-player").src="";
+const trending=await fetchData(requests.trending);
+const top=await fetchData(requests.top);
+const action=await fetchData(requests.action);
+const comedy=await fetchData(requests.comedy);
+const horror=await fetchData(requests.horror);
 
-};
-
-// ================= INIT =================
-(async ()=>{
-
-const netflix = await fetchData(requests.fetchNetflixOriginals);
-const trending = await fetchData(requests.fetchTrending);
-const top = await fetchData(requests.fetchTopRated);
-const action = await fetchData(requests.fetchActionMovies);
-
-createRow("Netflix Originals", netflix, true);
-createRow("Trending", trending);
-createRow("Top Rated", top);
-createRow("Action", action);
+createRow("Trending",trending);
+createRow("Top Rated",top);
+createRow("Action",action);
+createRow("Comedy",comedy);
+createRow("Horror",horror);
 
 // banner
-const banner = netflix[Math.floor(Math.random()*netflix.length)];
+const b=trending[Math.floor(Math.random()*trending.length)];
 
-if(banner){
-
-document.getElementById("banner").style.backgroundImage = `url(${IMAGE_BASE_URL}${banner.backdrop_path})`;
-
-document.getElementById("banner-title").textContent = banner.name || banner.title;
-
-document.getElementById("banner-description").textContent = banner.overview;
-
-}
+document.getElementById("banner").style.backgroundImage=`url(${IMG}${b.backdrop_path})`;
+document.getElementById("banner-title").textContent=b.title||b.name;
+document.getElementById("banner-description").textContent=b.overview;
 
 })();
 
