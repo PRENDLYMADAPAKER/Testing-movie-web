@@ -1,5 +1,17 @@
-const API_KEY = "MxpjFw4AFWnNrG8vUfNGZPeRwUcHc8cL2S15yXFZ";
-const BASE = "https://api.watchmode.com/v1";
+const API_KEY = "2f7637ba9b3253a84483afa03480473a";
+const BASE = "https://api.themoviedb.org/3";
+const IMG = "https://image.tmdb.org/t/p/original";
+
+const hero = document.getElementById("hero");
+const heroTitle = document.getElementById("hero-title");
+const heroDesc = document.getElementById("hero-desc");
+
+const rows = {
+  popular: document.getElementById("popular"),
+  trending: document.getElementById("trending"),
+  action: document.getElementById("action"),
+  horror: document.getElementById("horror"),
+};
 
 const modal = document.getElementById("modal");
 const player = document.getElementById("player");
@@ -8,49 +20,99 @@ const favBtn = document.getElementById("favBtn");
 
 let currentMovie = null;
 
-// FETCH MOVIES BY GENRE
-async function fetchByGenre(genre) {
-  const res = await fetch(`${BASE}/list-titles/?apiKey=${API_KEY}&types=movie&genres=${genre}&limit=10`);
+//////////////////////////////////////////
+// FETCH FUNCTIONS
+//////////////////////////////////////////
+
+async function fetchMovies(url) {
+  const res = await fetch(url);
   const data = await res.json();
-  return data.titles;
+  return data.results;
 }
 
+//////////////////////////////////////////
 // CREATE POSTER
+//////////////////////////////////////////
+
 function createPoster(movie) {
   const img = document.createElement("img");
   img.classList.add("poster");
 
-  img.src = movie.poster || "https://via.placeholder.com/150x220";
+  img.src = movie.poster_path
+    ? IMG + movie.poster_path
+    : "https://via.placeholder.com/300x450?text=No+Image";
+
   img.onclick = () => openModal(movie);
 
   return img;
 }
 
-// OPEN MODAL + TRAILER
+//////////////////////////////////////////
+// HERO
+//////////////////////////////////////////
+
+function setHero(movie) {
+  hero.style.backgroundImage = `url(${IMG + movie.backdrop_path})`;
+  heroTitle.textContent = movie.title;
+  heroDesc.textContent = movie.overview;
+}
+
+//////////////////////////////////////////
+// LOAD ROWS
+//////////////////////////////////////////
+
+async function loadRows() {
+  const popular = await fetchMovies(`${BASE}/movie/popular?api_key=${API_KEY}`);
+  const trending = await fetchMovies(`${BASE}/trending/movie/week?api_key=${API_KEY}`);
+  const action = await fetchMovies(`${BASE}/discover/movie?api_key=${API_KEY}&with_genres=28`);
+  const horror = await fetchMovies(`${BASE}/discover/movie?api_key=${API_KEY}&with_genres=27`);
+
+  fillRow(rows.popular, popular);
+  fillRow(rows.trending, trending);
+  fillRow(rows.action, action);
+  fillRow(rows.horror, horror);
+
+  setHero(popular[0]);
+}
+
+function fillRow(container, movies) {
+  container.innerHTML = "";
+  movies.forEach(m => container.appendChild(createPoster(m)));
+}
+
+//////////////////////////////////////////
+// MODAL + TRAILER
+//////////////////////////////////////////
+
 async function openModal(movie) {
   currentMovie = movie;
   modal.classList.remove("hidden");
 
-  // Fetch trailer
-  const res = await fetch(`${BASE}/title/${movie.id}/details/?apiKey=${API_KEY}&append_to_response=videos`);
+  const res = await fetch(
+    `${BASE}/movie/${movie.id}/videos?api_key=${API_KEY}`
+  );
   const data = await res.json();
 
-  const trailer = data.trailer || "";
-  
-  if (trailer.includes("youtube")) {
-    player.src = trailer.replace("watch?v=", "embed/") + "?autoplay=1";
+  const trailer = data.results.find(
+    v => v.type === "Trailer" && v.site === "YouTube"
+  );
+
+  if (trailer) {
+    player.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
   } else {
     player.src = "";
   }
 }
 
-// CLOSE MODAL
 closeBtn.onclick = () => {
   modal.classList.add("hidden");
   player.src = "";
 };
 
-// FAVORITES SYSTEM
+//////////////////////////////////////////
+// FAVORITES
+//////////////////////////////////////////
+
 favBtn.onclick = () => {
   let favs = JSON.parse(localStorage.getItem("favorites")) || [];
 
@@ -62,29 +124,40 @@ favBtn.onclick = () => {
   loadFavorites();
 };
 
-// LOAD FAVORITES
 function loadFavorites() {
   const container = document.getElementById("favorites");
   container.innerHTML = "";
 
   const favs = JSON.parse(localStorage.getItem("favorites")) || [];
-
-  favs.forEach(movie => {
-    container.appendChild(createPoster(movie));
-  });
+  favs.forEach(m => container.appendChild(createPoster(m)));
 }
 
-// LOAD CATEGORY
-async function loadCategory(id, genre) {
-  const container = document.getElementById(id);
-  const movies = await fetchByGenre(genre);
+//////////////////////////////////////////
+// SEARCH
+//////////////////////////////////////////
 
-  movies.forEach(movie => {
-    container.appendChild(createPoster(movie));
-  });
-}
+const searchInput = document.getElementById("search");
+const searchResults = document.getElementById("search-results");
 
+searchInput.addEventListener("keyup", async () => {
+  const query = searchInput.value;
+
+  if (query.length < 3) {
+    searchResults.innerHTML = "";
+    return;
+  }
+
+  const movies = await fetchMovies(
+    `${BASE}/search/movie?api_key=${API_KEY}&query=${query}`
+  );
+
+  searchResults.innerHTML = "";
+  movies.forEach(m => searchResults.appendChild(createPoster(m)));
+});
+
+//////////////////////////////////////////
 // INIT
-loadCategory("action", 28);
-loadCategory("horror", 27);
+//////////////////////////////////////////
+
+loadRows();
 loadFavorites();
