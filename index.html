@@ -1,212 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PremiumFlix V2</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
-<style>
+<title>Movie Streaming App</title><style>
 body {
-  background:#0b0f1a;
-  font-family:'Inter',sans-serif;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b0c10;
+  color: white;
 }
 
-/* Sidebar */
-.sidebar {
-  width:70px;
-  transition:0.3s;
-}
-.sidebar:hover {
-  width:200px;
-}
-
-/* Hover cards */
-.movie-card {
-  transition:0.3s;
-}
-.movie-card:hover {
-  transform:scale(1.15);
-  z-index:20;
+header {
+  padding: 15px;
+  background: #111;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* Hero video */
-.hero video {
-  position:absolute;
-  width:100%;
-  height:100%;
-  object-fit:cover;
+input {
+  padding: 8px;
+  width: 200px;
+  border-radius: 5px;
+  border: none;
 }
 
-/* Glass */
-.glass {
-  background:rgba(0,0,0,0.5);
-  backdrop-filter:blur(10px);
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 10px;
 }
-</style>
-</head>
 
-<body class="text-white flex">
+.card {
+  cursor: pointer;
+}
 
-<!-- SIDEBAR -->
-<div class="sidebar glass h-screen fixed flex flex-col p-4 space-y-6">
+.card img {
+  width: 100%;
+  border-radius: 8px;
+}
 
-<h1 class="text-blue-400 font-bold text-xl">P+</h1>
+.player {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  display: none;
+  flex-direction: column;
+}
 
-<button onclick="loadHome()">🏠 Home</button>
-<button onclick="loadWatchlist()">⭐ Watchlist</button>
+.player iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+}
 
-</div>
-
-<!-- MAIN -->
-<div class="ml-[70px] w-full">
-
-<!-- HERO -->
-<div id="hero" class="hero h-[70vh] relative flex items-end p-10">
-<div class="z-10">
-<h1 id="heroTitle" class="text-4xl font-bold"></h1>
-<p id="heroDesc" class="max-w-md text-sm"></p>
-
-<div class="mt-3 space-x-2">
-<button onclick="playHero()" class="bg-white text-black px-4 py-2 rounded">Play</button>
-<button onclick="addWatchlistHero()" class="bg-gray-700 px-4 py-2 rounded">+ Watchlist</button>
-</div>
-</div>
-</div>
-
-<!-- SEARCH -->
-<div class="p-6">
-<input id="searchInput" placeholder="Search..."
-class="w-full p-3 rounded bg-gray-800 outline-none">
-</div>
-
-<!-- ROWS -->
-<div id="rows" class="px-6 space-y-8"></div>
-
-</div>
-
-  <script>
+.closeBtn {
+  padding: 10px;
+  background: red;
+  text-align: center;
+  cursor: pointer;
+}
+</style></head><body><header>
+  <h2>My Streaming App</h2>
+  <input type="text" id="search" placeholder="Search movies...">
+</header><div class="grid" id="movies"></div><div class="player" id="player">
+  <div class="closeBtn" onclick="closePlayer()">Close</div>
+  <iframe id="frame" allowfullscreen></iframe>
+</div><script>
 const API_KEY = "2f7637ba9b3253a84483afa03480473a";
-const BASE = "https://api.themoviedb.org/3";
-const IMG = "https://image.tmdb.org/t/p/original";
+const IMG = "https://image.tmdb.org/t/p/w500";
 
-let heroMovie = null;
-
-// FETCH
-async function get(url){
-  const res = await fetch(url);
-  return (await res.json()).results;
-}
-
-// HERO WITH AUTO TRAILER
-async function loadHero(){
-  const movies = await get(`${BASE}/trending/movie/week?api_key=${API_KEY}`);
-  heroMovie = movies[Math.floor(Math.random()*movies.length)];
-
-  const hero = document.getElementById("hero");
-
-  const vidRes = await fetch(`${BASE}/movie/${heroMovie.id}?api_key=${API_KEY}&append_to_response=videos`);
-  const vidData = await vidRes.json();
-
-  const trailer = vidData.videos.results.find(v=>v.type==="Trailer");
-
-  if(trailer){
-    hero.innerHTML += `
-      <iframe src="https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1&controls=0&loop=1"
-      class="absolute w-full h-full top-0 left-0"></iframe>
-    `;
-  } else {
-    hero.style.backgroundImage = `url(${IMG+heroMovie.backdrop_path})`;
-    hero.style.backgroundSize = "cover";
-  }
-
-  document.getElementById("heroTitle").innerText = heroMovie.title;
-  document.getElementById("heroDesc").innerText = heroMovie.overview;
-}
-
-// ROW
-function createRow(title, movies){
-  const row = document.createElement("div");
-
-  row.innerHTML = `
-    <h2 class="font-bold text-lg">${title}</h2>
-    <div class="flex space-x-3 overflow-x-scroll">
-      ${movies.map(m=>`
-        <img src="${IMG+m.poster_path}"
-        class="movie-card w-32 rounded cursor-pointer"
-        onclick="openMovie(${m.id})">
-      `).join("")}
-    </div>
-  `;
-
-  document.getElementById("rows").appendChild(row);
-}
-
-// LOAD HOME
-async function loadHome(){
-  document.getElementById("rows").innerHTML="";
-
-  createRow("Trending", await get(`${BASE}/trending/movie/week?api_key=${API_KEY}`));
-  createRow("Top Rated", await get(`${BASE}/movie/top_rated?api_key=${API_KEY}`));
-  createRow("Action", await get(`${BASE}/discover/movie?api_key=${API_KEY}&with_genres=28`));
-}
-
-// PLAYER
-async function openMovie(id){
-  const res = await fetch(`${BASE}/movie/${id}?api_key=${API_KEY}&append_to_response=videos`);
+async function loadMovies() {
+  const res = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`);
   const data = await res.json();
-
-  const trailer = data.videos.results.find(v=>v.type==="Trailer");
-
-  if(trailer){
-    const win = window.open();
-    win.document.write(`
-      <style>body{margin:0;background:black}</style>
-      <iframe width="100%" height="100%"
-      src="https://www.youtube.com/embed/${trailer.key}?autoplay=1"
-      frameborder="0" allowfullscreen></iframe>
-    `);
-  }
+  displayMovies(data.results);
 }
 
-// WATCHLIST
-function addWatchlistHero(){
-  let list = JSON.parse(localStorage.getItem("watchlist")||"[]");
+function displayMovies(movies) {
+  const container = document.getElementById("movies");
+  container.innerHTML = "";
 
-  if(!list.find(m=>m.id===heroMovie.id)){
-    list.push(heroMovie);
-  }
+  movies.forEach(movie => {
+    const div = document.createElement("div");
+    div.className = "card";
 
-  localStorage.setItem("watchlist",JSON.stringify(list));
-  alert("Added to Watchlist ⭐");
+    div.innerHTML = `
+      <img src="${IMG + movie.poster_path}" />
+    `;
+
+    div.onclick = () => playMovie(movie.id);
+
+    container.appendChild(div);
+  });
 }
 
-function loadWatchlist(){
-  const list = JSON.parse(localStorage.getItem("watchlist")||"[]");
-
-  document.getElementById("rows").innerHTML="";
-  createRow("Your Watchlist", list);
+function playMovie(id) {
+  document.getElementById("player").style.display = "flex";
+  document.getElementById("frame").src = `https://vidsync.xyz/embed/movie/${id}`;
 }
 
-// SEARCH
-document.getElementById("searchInput").addEventListener("input", async(e)=>{
-  const q = e.target.value;
+function closePlayer() {
+  document.getElementById("player").style.display = "none";
+  document.getElementById("frame").src = "";
+}
 
-  if(q.length<3) return;
+// Search
 
-  const res = await get(`${BASE}/search/movie?api_key=${API_KEY}&query=${q}`);
+document.getElementById("search").addEventListener("input", async (e) => {
+  const query = e.target.value;
 
-  document.getElementById("rows").innerHTML="";
-  createRow("Search Results", res);
+  if (query.length < 3) return loadMovies();
+
+  const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${query}`);
+  const data = await res.json();
+  displayMovies(data.results);
 });
 
-// INIT
-loadHero();
-loadHome();
-</script>
-
-</body>
+loadMovies();
+</script></body>
 </html>
