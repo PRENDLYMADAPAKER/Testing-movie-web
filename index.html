@@ -1,149 +1,460 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NZM FLIX🇵🇭</title><style>
-body{margin:0;font-family:Arial;background:#0b0c10;color:white}
-header{padding:12px;background:#000;display:flex;justify-content:space-between;align-items:center}
-input{padding:8px 12px;width:180px;border-radius:20px;border:none;background:#222;color:white}
-.hero{height:50vh;background-size:cover;display:flex;flex-direction:column;justify-content:flex-end;padding:15px;background-position:center;transition:all .5s}
-.hero h2{margin:0;font-size:24px;text-shadow:2px 2px 4px black}
-.hero p{font-size:14px;max-width:600px;text-shadow:1px 1px 3px black}
-.section{padding:10px}
-.grid{display:flex;gap:10px;overflow-x:auto}
-.card{min-width:130px;cursor:pointer;transition:.3s;position:relative;border-radius:10px;overflow:hidden}
-.card:hover{transform:scale(1.08)}
-.card img{width:100%;border-radius:10px;display:block}
-.hoverPreview{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);opacity:0;transition:.3s;display:flex;align-items:center;justify-content:center;font-size:20px}
-.card:hover .hoverPreview{opacity:1}
+<title>NZM FLIX🇵🇭</title>
 
-.player{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:none;flex-direction:column;z-index:999}
-.videoWrapper{position:relative;width:100%;padding-top:56.25%;background:black;box-shadow:0 0 20px #000}
-.videoWrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:10px;box-shadow:0 0 20px #000}
-.controls{padding:10px;background:#111;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.details{padding:10px;background:#111;border-radius:10px;margin:10px 0}
-.episodes{display:flex;flex-wrap:wrap;gap:10px}
-.episode-card{background:#222;color:white;padding:6px;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:.3s;width:120px}
-.episode-card:hover{background:#333;transform:scale(1.05)}
-.episode-card img{width:100%;border-radius:8px;margin-bottom:5px}
-button{padding:6px 10px;border:none;border-radius:5px;cursor:pointer;background:#e50914;color:white;font-weight:bold}
-select{padding:5px;border-radius:5px;background:#222;color:white}
-@media(max-width:600px){
-.hero{height:40vh;font-size:16px}
-.card{min-width:110px}
-.episode-card{width:90px}
+<style>
+body{
+ margin:0;
+ font-family:Arial;
+ background:#0b0c10;
+ color:white;
 }
-</style></head><body>
+
+/* HEADER */
+header{
+ padding:12px;
+ background:#000;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
+
+input{
+ padding:8px 12px;
+ width:180px;
+ border-radius:20px;
+ border:none;
+ background:#222;
+ color:white;
+}
+
+/* HERO */
+.hero{
+ height:50vh;
+ background-size:cover;
+ display:flex;
+ flex-direction:column;
+ justify-content:flex-end;
+ padding:15px;
+ background-position:center;
+ transition:all .5s ease;
+ animation:fadeIn 1s;
+}
+
+/* ANIMATION */
+@keyframes fadeIn{
+ from{opacity:0;transform:translateY(20px)}
+ to{opacity:1;transform:translateY(0)}
+}
+
+/* SECTIONS */
+.section{padding:10px}
+
+/* GRID */
+.grid{
+ display:flex;
+ gap:10px;
+ overflow-x:auto;
+}
+
+/* CARD */
+.card{
+ min-width:150px;
+ border-radius:12px;
+ overflow:hidden;
+ position:relative;
+ cursor:pointer;
+ transition:.3s;
+}
+
+.card:hover{
+ transform:scale(1.1);
+ z-index:10;
+}
+
+/* IMAGE */
+.card img{
+ width:100%;
+ height:220px;
+ object-fit:cover;
+}
+
+/* PLAY BUTTON OVERLAY */
+.playBtn{
+ position:absolute;
+ top:50%;
+ left:50%;
+ transform:translate(-50%,-50%);
+ font-size:30px;
+ background:rgba(0,0,0,0.6);
+ border-radius:50%;
+ padding:10px 15px;
+ opacity:0;
+ transition:.3s;
+}
+
+.card:hover .playBtn{
+ opacity:1;
+}
+
+/* RATING */
+.rating{
+ position:absolute;
+ bottom:5px;
+ left:5px;
+ font-size:12px;
+ background:rgba(0,0,0,0.7);
+ padding:2px 6px;
+ border-radius:5px;
+}
+
+/* PROGRESS BAR */
+.progress{
+ position:absolute;
+ bottom:0;
+ left:0;
+ height:4px;
+ background:red;
+ width:0%;
+}
+
+/* PLAYER */
+.player{
+ position:fixed;
+ top:0;
+ left:0;
+ width:100%;
+ height:100%;
+ background:#000;
+ display:none;
+ flex-direction:column;
+ z-index:999;
+}
+
+.videoWrapper{
+ position:relative;
+ width:100%;
+ padding-top:56.25%;
+}
+
+.videoWrapper iframe{
+ position:absolute;
+ width:100%;
+ height:100%;
+}
+
+/* CONTROLS */
+.controls{
+ padding:10px;
+ background:#111;
+ display:flex;
+ gap:10px;
+ flex-wrap:wrap;
+}
+
+/* DETAILS */
+.details{
+ padding:10px;
+ background:#111;
+ margin:10px;
+ border-radius:10px;
+}
+
+/* EPISODES NETFLIX STYLE */
+.episodes{
+ display:flex;
+ flex-direction:column;
+ gap:10px;
+ padding:10px;
+}
+
+.episode-card{
+ display:flex;
+ gap:10px;
+ background:#1a1a1a;
+ padding:10px;
+ border-radius:10px;
+ cursor:pointer;
+ transition:.3s;
+}
+
+.episode-card:hover{
+ background:#333;
+}
+
+.episode-card img{
+ width:120px;
+ height:70px;
+ object-fit:cover;
+ border-radius:8px;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+ .card{min-width:120px}
+ .card img{height:180px}
+}
+</style>
+</head>
+
+<body>
+
 <header>
 <h3>NZM FLIX🇵🇭</h3>
 <input id="search" placeholder="Search...">
-</header><div class="hero" id="hero"></div><div class="section"><h3>Trending</h3><div class="grid" id="trending"></div></div>
+</header>
+
+<div class="hero" id="hero"></div>
+
+<div class="section"><h3>Trending</h3><div class="grid" id="trending"></div></div>
 <div class="section"><h3>Top Rated</h3><div class="grid" id="top"></div></div>
-<div class="section"><h3>Favorites ❤️</h3><div class="grid" id="fav"></div></div>
-<div class="section"><h3>Continue ▶</h3><div class="grid" id="continue"></div></div><div class="player" id="player">
+<div class="section"><h3>🎬 Action</h3><div class="grid" id="action"></div></div>
+<div class="section"><h3>😂 Comedy</h3><div class="grid" id="comedy"></div></div>
+<div class="section"><h3>🇵🇭 Filipino Picks</h3><div class="grid" id="ph"></div></div>
+<div class="section"><h3>Continue ▶</h3><div class="grid" id="continue"></div></div>
+
+<div class="player" id="player">
 <div class="controls">
 <button onclick="closePlayer()">Close</button>
 <button onclick="addFav()">❤️</button>
 <select id="season"></select>
 </div>
-<div class="videoWrapper"><iframe id="frame" allowfullscreen></iframe></div>
+
+<div class="videoWrapper">
+<iframe id="frame" allowfullscreen></iframe>
+</div>
+
 <div class="details" id="details"></div>
 <div class="episodes" id="episodes"></div>
-</div><script>
+</div>
+
+ <script>
 const API_KEY="2f7637ba9b3253a84483afa03480473a";
 const IMG="https://image.tmdb.org/t/p/original";
 let current={};
 
 const sources=[
  id=>`https://vidsync.xyz/embed/movie/${id}`,
- id=>`https://vidsrc.to/embed/movie/${id}`,
- id=>`https://vidlink.pro/movie/${id}`,
- id=>`https://vidsrc.me/embed/movie/${id}`
+ id=>`https://vidsrc.to/embed/movie/${id}`
 ];
 
 function save(k,d){localStorage.setItem(k,JSON.stringify(d))}
 function load(k){return JSON.parse(localStorage.getItem(k)||"[]")}
 async function fetchData(u){return (await fetch(u)).json()}
 
+/* HOME */
 async function loadHome(){
  const t=await fetchData(`https://api.themoviedb.org/3/trending/all/day?api_key=${API_KEY}`);
  const top=await fetchData(`https://api.themoviedb.org/3/movie/top_rated?api_key=${API_KEY}`);
+ const action=await fetchData(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=28`);
+ const comedy=await fetchData(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=35`);
+ const ph=await fetchData(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_origin_country=PH`);
+
  display(t.results,"trending");
  display(top.results,"top");
+ display(action.results,"action");
+ display(comedy.results,"comedy");
+ display(ph.results,"ph");
+
  setHero(t.results[0]);
- loadFav();loadContinue();
+ loadContinue();
 }
 
-function setHero(i){const h=document.getElementById("hero");
+/* HERO */
+function setHero(i){
+ const h=document.getElementById("hero");
  h.style.backgroundImage=`url(${IMG+i.backdrop_path})`;
  h.innerHTML=`<h2>${i.title||i.name}</h2><p>${i.overview||""}</p>`;
- h.onclick=()=>openPlayer(i);
 }
 
-function display(list,id){const c=document.getElementById(id);c.innerHTML="";list.forEach(i=>{
- if(!i.poster_path)return;
- const d=document.createElement("div");d.className="card";
- d.innerHTML=`<img src="${IMG+i.poster_path}"><div class='hoverPreview'>▶</div>`;
- d.onclick=()=>openPlayer(i);
- c.appendChild(d);
-})}
+/* DISPLAY */
+function display(list,id){
+ const c=document.getElementById(id);
+ c.innerHTML="";
 
-function openPlayer(i){current=i;document.getElementById("player").style.display="flex";
-saveContinue(i);
-document.getElementById("details").innerHTML=`<h3>${i.title||i.name}</h3><p>${i.overview||"No description"}</p>`;
-document.getElementById("episodes").innerHTML="";
-if(i.media_type==="tv"||i.first_air_date){loadTV(i.id)}
-else playMovie(i.id);
+ const cont=load("cont");
+
+ list.forEach(i=>{
+  if(!i.poster_path)return;
+
+  const progressItem=cont.find(x=>x.id===i.id);
+  const progress=progressItem?.progress||0;
+
+  const d=document.createElement("div");
+  d.className="card";
+
+  d.innerHTML=`
+   <img src="${IMG+i.poster_path}">
+   <div class="playBtn">▶</div>
+   <div class="rating">⭐ ${i.vote_average||"N/A"}</div>
+   <div class="progress" style="width:${progress}%"></div>
+  `;
+
+  d.onclick=()=>openPlayer(i);
+
+  /* TRAILER PREVIEW */
+  d.onmouseenter=()=>previewTrailer(i);
+  d.onmouseleave=()=>stopPreview();
+
+  c.appendChild(d);
+ });
 }
 
-function playMovie(id){autoPlay(sources.map(f=>f(id)))}
+/* TRAILER PREVIEW */
+let previewFrame;
+async function previewTrailer(i){
+ if(previewFrame)return;
 
-function autoPlay(list){let i=0;const f=document.getElementById("frame");
-function next(){if(i>=list.length)return;f.src=list[i++];}
-next();setInterval(next,6000)}
+ const data=await fetchData(`https://api.themoviedb.org/3/${i.media_type||"movie"}/${i.id}/videos?api_key=${API_KEY}`);
+ const trailer=data.results.find(v=>v.type==="Trailer");
 
+ if(!trailer)return;
+
+ previewFrame=document.createElement("iframe");
+ previewFrame.src=`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1`;
+ previewFrame.style.position="fixed";
+ previewFrame.style.bottom="20px";
+ previewFrame.style.right="20px";
+ previewFrame.style.width="300px";
+ previewFrame.style.height="170px";
+ previewFrame.style.zIndex="999";
+
+ document.body.appendChild(previewFrame);
+}
+
+function stopPreview(){
+ if(previewFrame){
+  previewFrame.remove();
+  previewFrame=null;
+ }
+}
+
+/* PLAYER */
+function openPlayer(i){
+ current=i;
+ document.getElementById("player").style.display="flex";
+
+ const year=(i.release_date||i.first_air_date||"").split("-")[0];
+
+ document.getElementById("details").innerHTML=`
+ <h3>${i.title||i.name} (${year||"N/A"})</h3>
+ <p>${i.overview||"No description"}</p>
+ `;
+
+ const season=document.getElementById("season");
+
+ if(i.media_type==="tv"||i.name){
+  season.style.display="block";
+  loadTV(i.id);
+ }else{
+  season.style.display="none";
+  playMovie(i.id);
+ }
+
+ saveContinue(i);
+}
+
+/* PLAY */
+function playMovie(id){
+ autoPlay(sources.map(f=>f(id)));
+}
+
+function autoPlay(list){
+ let i=0;
+ const f=document.getElementById("frame");
+
+ function next(){
+  if(i>=list.length)return;
+  f.src=list[i++];
+ }
+
+ next();
+}
+
+/* TV */
 async function loadTV(id){
  const d=await fetchData(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}`);
- const s=document.getElementById("season");s.innerHTML="";
+ const s=document.getElementById("season");
+ s.innerHTML="";
+
  d.seasons.forEach(x=>{
- const o=document.createElement("option");
- o.value=x.season_number;o.text="Season "+x.season_number;s.appendChild(o)});
+  const o=document.createElement("option");
+  o.value=x.season_number;
+  o.text="Season "+x.season_number;
+  s.appendChild(o);
+ });
+
  s.onchange=()=>loadEpisodes(id,s.value);
  loadEpisodes(id,s.value);
 }
 
 async function loadEpisodes(id,sn){
  const d=await fetchData(`https://api.themoviedb.org/3/tv/${id}/season/${sn}?api_key=${API_KEY}`);
- const box=document.getElementById("episodes");box.innerHTML="";
+ const box=document.getElementById("episodes");
+ box.innerHTML="";
+
  d.episodes.forEach(e=>{
- const b=document.createElement("div");
- b.className="episode-card";
- b.innerHTML=`<img src='${IMG+e.still_path}' alt='Ep ${e.episode_number}'><span>Ep ${e.episode_number}</span>`;
- b.onclick=()=>autoPlay([
- `https://vidsync.xyz/embed/tv/${id}/${sn}/${e.episode_number}`,
- `https://vidsrc.to/embed/tv/${id}/${sn}/${e.episode_number}`,
- `https://vidlink.pro/tv/${id}/${sn}/${e.episode_number}`
- ]);
- box.appendChild(b);
+  const b=document.createElement("div");
+  b.className="episode-card";
+
+  b.innerHTML=`
+   <img src="${e.still_path?IMG+e.still_path:""}">
+   <div>
+    <b>Ep ${e.episode_number}: ${e.name}</b>
+    <p>${e.overview||""}</p>
+   </div>
+  `;
+
+  b.onclick=()=>autoPlay([
+   `https://vidsrc.to/embed/tv/${id}/${sn}/${e.episode_number}`
+  ]);
+
+  box.appendChild(b);
  });
 }
 
-function addFav(){let f=load("fav");if(!f.find(x=>x.id===current.id)){f.push(current);save("fav",f);loadFav()}}
-function loadFav(){display(load("fav"),"fav")}
-function saveContinue(i){let c=load("cont");c=c.filter(x=>x.id!==i.id);c.unshift(i);save("cont",c.slice(0,10))}
-function loadContinue(){display(load("cont"),"continue")}
-function closePlayer(){document.getElementById("player").style.display="none";document.getElementById("frame").src=""}
+/* CONTINUE WATCHING */
+function saveContinue(i){
+ let c=load("cont");
 
-// SEARCH
+ const existing=c.find(x=>x.id===i.id);
 
+ if(existing){
+  existing.progress=existing.progress+10||10;
+ }else{
+  c.unshift({...i,progress:10});
+ }
+
+ save("cont",c.slice(0,10));
+ loadContinue();
+}
+
+function loadContinue(){
+ display(load("cont"),"continue");
+}
+
+/* CLOSE */
+function closePlayer(){
+ document.getElementById("player").style.display="none";
+ document.getElementById("frame").src="";
+}
+
+/* SEARCH */
 document.getElementById("search").addEventListener("input",async e=>{
  const q=e.target.value.trim();
  if(q.length<2){loadHome();return}
+
  const d=await fetchData(`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${q}`);
  display(d.results,"trending");
  document.getElementById("top").innerHTML="";
 });
 
+/* INIT */
 loadHome();
-</script></body>
+</script>
+
+</body>
 </html>
