@@ -2,11 +2,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Streaming App V4 Ultimate</title><style>
+<title>Streaming App V5 Netflix Clone</title><style>
 body{margin:0;font-family:Arial;background:#0b0c10;color:white}
 header{padding:12px;background:#000;display:flex;justify-content:space-between;align-items:center}
 input{padding:8px 12px;width:180px;border-radius:20px;border:none}
-.hero{height:50vh;background-size:cover;display:flex;align-items:flex-end;padding:15px;font-size:20px}
+.hero{height:50vh;background-size:cover;display:flex;flex-direction:column;justify-content:flex-end;padding:15px}
+.hero h2{margin:0}
+.hero p{font-size:14px;max-width:500px}
 .section{padding:10px}
 .grid{display:flex;gap:10px;overflow-x:auto}
 .card{min-width:130px;cursor:pointer;transition:.3s;position:relative}
@@ -15,20 +17,17 @@ input{padding:8px 12px;width:180px;border-radius:20px;border:none}
 .hoverPreview{position:absolute;top:0;left:0;width:100%;height:100%;background:black;opacity:0;transition:.3s;display:flex;align-items:center;justify-content:center}
 .card:hover .hoverPreview{opacity:.7}
 
-/* MOBILE RESPONSIVE PLAYER */
 .player{position:fixed;top:0;left:0;width:100%;height:100%;background:black;display:none;flex-direction:column;z-index:999}
-.videoWrapper{position:relative;width:100%;padding-top:56.25%;background:black}
-.videoWrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
-.controls{padding:8px;background:#111;display:flex;gap:8px;flex-wrap:wrap}
+.videoWrapper{position:relative;width:100%;padding-top:56.25%}
+.videoWrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%}
+.controls{padding:8px;background:#111;display:flex;gap:8px}
+.details{padding:10px}
+.episodes{display:flex;flex-wrap:wrap;gap:6px}
+.episodes button{background:#222;color:white}
 button{padding:6px 10px;border:none;border-radius:5px;cursor:pointer}
-select{padding:5px}
 
-@media(max-width:600px){
-.hero{height:40vh;font-size:16px}
-.card{min-width:110px}
-}
 </style></head><body><header>
-<h3>StreamX V4</h3>
+<h3>StreamX V5</h3>
 <input id="search" placeholder="Search...">
 </header><div class="hero" id="hero"></div><div class="section"><h3>Trending</h3><div class="grid" id="trending"></div></div>
 <div class="section"><h3>Top Rated</h3><div class="grid" id="top"></div></div>
@@ -38,17 +37,16 @@ select{padding:5px}
 <button onclick="closePlayer()">Close</button>
 <button onclick="addFav()">❤️</button>
 <select id="season"></select>
-<select id="episode"></select>
 </div>
-<div class="videoWrapper">
-<iframe id="frame" allowfullscreen allow="autoplay"></iframe>
-</div>
+<div class="videoWrapper"><iframe id="frame" allowfullscreen></iframe></div>
+<div class="details" id="details"></div>
+<div class="episodes" id="episodes"></div>
 </div><script>
 const API_KEY="2f7637ba9b3253a84483afa03480473a";
 const IMG="https://image.tmdb.org/t/p/original";
 let current={};
 
-const movieSources=[
+const sources=[
  id=>`https://vidsync.xyz/embed/movie/${id}`,
  id=>`https://vidsrc.to/embed/movie/${id}`,
  id=>`https://vidlink.pro/movie/${id}`,
@@ -57,7 +55,6 @@ const movieSources=[
 
 function save(k,d){localStorage.setItem(k,JSON.stringify(d))}
 function load(k){return JSON.parse(localStorage.getItem(k)||"[]")}
-
 async function fetchData(u){return (await fetch(u)).json()}
 
 async function loadHome(){
@@ -69,7 +66,10 @@ async function loadHome(){
  loadFav();loadContinue();
 }
 
-function setHero(i){const h=document.getElementById("hero");h.style.backgroundImage=`url(${IMG+i.backdrop_path})`;h.innerHTML=i.title||i.name;h.onclick=()=>openPlayer(i)}
+function setHero(i){const h=document.getElementById("hero");
+h.style.backgroundImage=`url(${IMG+i.backdrop_path})`;
+h.innerHTML=`<h2>${i.title||i.name}</h2><p>${i.overview||""}</p>`;
+h.onclick=()=>openPlayer(i)}
 
 function display(list,id){const c=document.getElementById(id);c.innerHTML="";list.forEach(i=>{
  if(!i.poster_path)return;
@@ -79,63 +79,53 @@ function display(list,id){const c=document.getElementById(id);c.innerHTML="";lis
  c.appendChild(d);
 })}
 
-function openPlayer(i){current=i;document.getElementById("player").style.display="flex";saveContinue(i);
- if(i.media_type==="tv"||i.first_air_date){loadTV(i.id)}
- else playMovie(i.id);
+function openPlayer(i){current=i;document.getElementById("player").style.display="flex";
+saveContinue(i);
+document.getElementById("details").innerHTML=`<h3>${i.title||i.name}</h3><p>${i.overview||"No description"}</p>`;
+document.getElementById("episodes").innerHTML="";
+
+if(i.media_type==="tv"||i.first_air_date){loadTV(i.id)}
+else playMovie(i.id);
 }
 
-function playMovie(id){autoPlay(movieSources.map(f=>f(id)))}
+function playMovie(id){autoPlay(sources.map(f=>f(id)))}
 
 function autoPlay(list){let i=0;const f=document.getElementById("frame");
- function tryNext(){if(i>=list.length)return;f.src=list[i++];}
- tryNext();
-
- // smarter fallback: detect stuck iframe
- let check=setInterval(()=>{
-   tryNext();
-   if(i>=list.length) clearInterval(check);
- },6000);
-}
+function next(){if(i>=list.length)return;f.src=list[i++];}
+next();setInterval(next,6000)}
 
 async function loadTV(id){
  const d=await fetchData(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}`);
  const s=document.getElementById("season");s.innerHTML="";
  d.seasons.forEach(x=>{
  const o=document.createElement("option");
- o.value=x.season_number;
- o.text="S"+x.season_number;
- s.appendChild(o);
- });
- s.onchange=()=>loadEp(id,s.value);
- loadEp(id,s.value);
+ o.value=x.season_number;o.text="Season "+x.season_number;s.appendChild(o)});
+ s.onchange=()=>loadEpisodes(id,s.value);
+ loadEpisodes(id,s.value);
 }
 
-async function loadEp(id,sn){
+async function loadEpisodes(id,sn){
  const d=await fetchData(`https://api.themoviedb.org/3/tv/${id}/season/${sn}?api_key=${API_KEY}`);
- const e=document.getElementById("episode");e.innerHTML="";
- d.episodes.forEach(x=>{
- const o=document.createElement("option");
- o.value=x.episode_number;
- o.text="Ep"+x.episode_number;
- e.appendChild(o);
- });
- e.onchange=()=>autoPlay([
- `https://vidsync.xyz/embed/tv/${id}/${sn}/${e.value}`,
- `https://vidsrc.to/embed/tv/${id}/${sn}/${e.value}`,
- `https://vidlink.pro/tv/${id}/${sn}/${e.value}`
+ const box=document.getElementById("episodes");box.innerHTML="";
+ d.episodes.forEach(e=>{
+ const b=document.createElement("button");
+ b.textContent="Ep "+e.episode_number;
+ b.onclick=()=>autoPlay([
+ `https://vidsync.xyz/embed/tv/${id}/${sn}/${e.episode_number}`,
+ `https://vidsrc.to/embed/tv/${id}/${sn}/${e.episode_number}`,
+ `https://vidlink.pro/tv/${id}/${sn}/${e.episode_number}`
  ]);
- e.onchange();
+ box.appendChild(b);
+ });
 }
 
 function addFav(){let f=load("fav");if(!f.find(x=>x.id===current.id)){f.push(current);save("fav",f);loadFav()}}
 function loadFav(){display(load("fav"),"fav")}
-
 function saveContinue(i){let c=load("cont");c=c.filter(x=>x.id!==i.id);c.unshift(i);save("cont",c.slice(0,10))}
 function loadContinue(){display(load("cont"),"continue")}
-
 function closePlayer(){document.getElementById("player").style.display="none";document.getElementById("frame").src=""}
 
-// IMPROVED SEARCH
+// SEARCH
 
 document.getElementById("search").addEventListener("input",async e=>{
  const q=e.target.value.trim();
