@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NZM FLIX | Ultra Premium</title>
+    <title>NZM FLIX | Premium</title>
 
     <style>
         :root {
@@ -36,7 +36,6 @@
             padding: 5px 10px; border-radius: 4px; display: flex; align-items: center;
         }
         #search { background: transparent; border: none; color: white; outline: none; width: 120px; transition: 0.3s; }
-        #search:focus { width: 200px; }
 
         /* --- HERO --- */
         .hero {
@@ -52,23 +51,17 @@
         
         .play-btn { background: white; color: black; padding: 10px 25px; border-radius: 4px; font-weight: bold; border: none; cursor: pointer; font-size: 1rem; }
 
-        /* --- ROWS & TOP 10 --- */
+        /* --- ROWS --- */
         .section { padding: 20px 0 10px 4%; }
         .row { display: flex; gap: 10px; overflow-x: auto; padding: 15px 0; scrollbar-width: none; }
         .row::-webkit-scrollbar { display: none; }
-
-        .top10-card { position: relative; min-width: 240px; height: 135px; display: flex; align-items: flex-end; }
-        .top10-num {
-            font-size: 140px; font-weight: 900; line-height: 0.7; margin-right: -25px;
-            color: #000; -webkit-text-stroke: 2px #777; position: relative; z-index: 1;
-        }
 
         .card {
             min-width: var(--card-width); height: var(--card-height);
             background: #222; border-radius: 4px; overflow: hidden;
             transition: var(--transition); cursor: pointer; position: relative;
         }
-        .card:hover { transform: scale(1.15); z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .card:hover { transform: scale(1.1); z-index: 10; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
         .card-name {
             position: absolute; bottom: 0; width: 100%; padding: 5px;
@@ -76,18 +69,18 @@
             font-size: 11px; font-weight: bold; text-align: center;
         }
 
-        /* --- PLAYER SYSTEM --- */
+        /* --- PLAYER OVERLAY --- */
         .player {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 2000; display: none; overflow-y: auto;
         }
         
-        .video-box { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; transition: 0.3s; }
+        .video-box { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
         .video-box iframe { width: 100%; height: 100%; border: none; }
 
-        /* THE LANDSCAPE FIX: Only triggers when class "active-landscape" is added */
+        /* LANDSCAPE TRIGGER */
         @media screen and (max-width: 900px) and (orientation: portrait) {
-            .active-landscape {
+            .video-box.active-landscape {
                 position: fixed; top: 50%; left: 50%;
                 width: 100vh; height: 100vw;
                 transform: translate(-50%, -50%) rotate(90deg);
@@ -95,17 +88,30 @@
             }
         }
 
-        .details { padding: 25px 5%; }
-        .ep-item {
-            display: flex; gap: 12px; padding: 10px; background: #1a1a1a;
-            margin-bottom: 8px; border-radius: 4px; align-items: center; cursor: pointer;
+        .details { padding: 20px 5%; }
+        
+        /* Season Selector Styling */
+        #seasonSelect {
+            background: #333; color: white; border: 1px solid #555;
+            padding: 8px 12px; border-radius: 4px; font-size: 1rem;
+            margin-bottom: 20px; width: 100%; max-width: 200px;
         }
-        .ep-item img { width: 120px; height: 68px; object-fit: cover; border-radius: 2px; }
+
+        /* Episode List with Small Description */
+        .ep-item {
+            display: flex; gap: 15px; padding: 12px 0;
+            border-bottom: 1px solid #333; cursor: pointer;
+        }
+        .ep-item:hover { background: #1a1a1a; }
+        .ep-img { width: 130px; height: 74px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+        .ep-info { display: flex; flex-direction: column; justify-content: center; }
+        .ep-title { font-weight: bold; margin-bottom: 4px; font-size: 0.95rem; }
+        .ep-desc { font-size: 0.75rem; color: #999; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
         .close-player {
-            position: fixed; top: 15px; left: 15px; z-index: 4000;
-            background: rgba(0,0,0,0.5); color: white; border: none;
-            width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer;
+            position: fixed; top: 15px; right: 15px; z-index: 4000;
+            background: rgba(0,0,0,0.6); color: white; border: none;
+            width: 35px; height: 35px; border-radius: 50%; font-size: 18px; cursor: pointer;
         }
 
         #searchOverlay {
@@ -126,10 +132,9 @@
 
 <div id="hero" class="hero"></div>
 
-<div class="section"><h3>Top 10 Philippines</h3><div class="row" id="top10"></div></div>
-<div class="section"><h3>Anime</h3><div class="row" id="anime"></div></div>
+<div class="section"><h3>Trending Now</h3><div class="row" id="trending"></div></div>
+<div class="section"><h3>Anime Classics</h3><div class="row" id="anime"></div></div>
 <div class="section"><h3>K-Drama</h3><div class="row" id="kdrama"></div></div>
-<div class="section"><h3>Trending Movies</h3><div class="row" id="movies"></div></div>
 
 <div id="searchOverlay"><div class="search-grid" id="searchGrid"></div></div>
 
@@ -139,7 +144,10 @@
         <iframe id="mainFrame" allow="autoplay; fullscreen" allowfullscreen></iframe>
     </div>
     <div class="details" id="pDetails"></div>
-    <div id="epList" style="padding: 0 5% 40px"></div>
+    <div style="padding: 0 5%;">
+        <select id="seasonSelect" onchange="changeSeason()"></select>
+        <div id="epList"></div>
+    </div>
 </div>
 
 <script>
@@ -147,38 +155,33 @@ const API = "2f7637ba9b3253a84483afa03480473a";
 const IMG = "https://image.tmdb.org/t/p/original";
 const THUMB = "https://image.tmdb.org/t/p/w500";
 
+let currentTVId = null;
+
 async function get(path) {
     const res = await fetch(`https://api.themoviedb.org/3${path}${path.includes('?') ? '&' : '?'}api_key=${API}`);
     return res.json();
 }
 
 async function init() {
-    const trend = await get('/trending/all/day?region=PH');
+    const trend = await get('/trending/all/day');
     setHero(trend.results[0]);
+    renderRow(trend.results, 'trending');
     
-    // Top 10 PH
-    const topRow = document.getElementById('top10');
-    trend.results.slice(0,10).forEach((i, idx) => {
-        const d = document.createElement('div'); d.className = 'top10-card';
-        d.innerHTML = `<span class="top10-num">${idx+1}</span><div class="card" onclick='openPlayer(${JSON.stringify(i).replace(/'/g,"")})'>
-            <img src="${THUMB + i.backdrop_path}"><div class="card-name">${i.title || i.name}</div></div>`;
-        topRow.appendChild(d);
-    });
+    const anime = await get('/discover/tv?with_genres=16&with_original_language=ja');
+    renderRow(anime.results, 'anime');
 
-    render('/discover/tv?with_genres=16&with_original_language=ja', 'anime');
-    render('/discover/tv?with_genres=18&with_original_language=ko', 'kdrama');
-    render('/movie/popular', 'movies');
+    const kdrama = await get('/discover/tv?with_genres=18&with_original_language=ko');
+    renderRow(kdrama.results, 'kdrama');
 }
 
-async function render(path, id) {
-    const data = await get(path);
-    const row = document.getElementById(id);
-    data.results.forEach(i => {
+function renderRow(list, id) {
+    const container = document.getElementById(id);
+    list.forEach(i => {
         if(!i.backdrop_path) return;
         const c = document.createElement('div'); c.className = 'card';
         c.innerHTML = `<img src="${THUMB + i.backdrop_path}"><div class="card-name">${i.title || i.name}</div>`;
         c.onclick = () => openPlayer(i);
-        row.appendChild(c);
+        container.appendChild(c);
     });
 }
 
@@ -193,7 +196,7 @@ async function openPlayer(i) {
     const p = document.getElementById('player');
     const frame = document.getElementById('mainFrame');
     p.style.display = "block";
-    document.getElementById('vBox').classList.remove('active-landscape'); // Keep trailer upright
+    document.getElementById('vBox').classList.remove('active-landscape'); 
     
     const type = i.first_air_date ? 'tv' : 'movie';
     const v = await get(`/${type}/${i.id}/videos`);
@@ -203,28 +206,59 @@ async function openPlayer(i) {
 
     document.getElementById('pDetails').innerHTML = `
         <h2 style="margin:0">${i.title || i.name}</h2>
-        <p style="color:#aaa; font-size:14px;">${i.overview}</p>
+        <p style="color:#aaa; font-size:14px; margin-bottom: 20px;">${i.overview}</p>
         <button onclick="startStream(${i.id}, '${type}')" style="background:white; color:black; border:none; padding:15px; width:100%; font-weight:bold; border-radius:4px;">▶ START WATCHING</button>
     `;
 
-    if(type === 'tv') loadEps(i.id); else document.getElementById('epList').innerHTML = "";
+    if(type === 'tv') {
+        currentTVId = i.id;
+        loadSeasonList(i.id);
+    } else {
+        document.getElementById('seasonSelect').style.display = 'none';
+        document.getElementById('epList').innerHTML = "";
+    }
 }
 
-async function loadEps(id) {
-    const data = await get(`/tv/${id}/season/1`);
+async function loadSeasonList(id) {
+    const data = await get(`/tv/${id}`);
+    const sel = document.getElementById('seasonSelect');
+    sel.style.display = 'block';
+    sel.innerHTML = "";
+    data.seasons.forEach(s => {
+        if(s.season_number === 0) return;
+        const opt = document.createElement('option');
+        opt.value = s.season_number;
+        opt.text = `Season ${s.season_number}`;
+        sel.appendChild(opt);
+    });
+    loadEpisodes(id, 1);
+}
+
+function changeSeason() {
+    const sNum = document.getElementById('seasonSelect').value;
+    loadEpisodes(currentTVId, sNum);
+}
+
+async function loadEpisodes(id, sNum) {
+    const data = await get(`/tv/${id}/season/${sNum}`);
     const list = document.getElementById('epList');
-    list.innerHTML = "<h4>Episodes</h4>";
+    list.innerHTML = "";
     data.episodes.forEach(e => {
         const d = document.createElement('div'); d.className = 'ep-item';
-        d.onclick = () => startStream(id, 'tv', 1, e.episode_number);
-        d.innerHTML = `<img src="${THUMB + e.still_path}"><div><b>${e.episode_number}. ${e.name}</b></div>`;
+        d.onclick = () => startStream(id, 'tv', sNum, e.episode_number);
+        d.innerHTML = `
+            <img class="ep-img" src="${THUMB + e.still_path}">
+            <div class="ep-info">
+                <div class="ep-title">${e.episode_number}. ${e.name}</div>
+                <div class="ep-desc">${e.overview || "No description available."}</div>
+            </div>`;
         list.appendChild(d);
     });
 }
 
 function startStream(id, type, s=1, e=1) {
     const frame = document.getElementById('mainFrame');
-    document.getElementById('vBox').classList.add('active-landscape'); // Only rotate when streaming
+    document.getElementById('vBox').classList.add('active-landscape');
     frame.src = type === 'tv' 
         ? `https://vidsync.xyz/embed/tv/${id}/${s}/${e}?autoPlay=true` 
         : `https://vidsync.xyz/embed/movie/${id}?autoPlay=true`;
@@ -237,31 +271,7 @@ function closePlayer() {
     document.body.style.overflow = "auto";
 }
 
-document.getElementById('search').oninput = async (e) => {
-    const q = e.target.value;
-    const ov = document.getElementById('searchOverlay');
-    const grid = document.getElementById('searchGrid');
-    if(q.length > 2) {
-        ov.style.display = "block";
-        const data = await get(`/search/multi?query=${q}`);
-        grid.innerHTML = "";
-        data.results.forEach(i => {
-            if(!i.backdrop_path) return;
-            const c = document.createElement('div'); c.className = 'card';
-            c.innerHTML = `<img src="${THUMB + i.backdrop_path}"><div class="card-name">${i.title || i.name}</div>`;
-            c.onclick = () => { ov.style.display="none"; openPlayer(i); };
-            grid.appendChild(c);
-        });
-    } else ov.style.display = "none";
-};
-
-window.onscroll = () => {
-    const nav = document.getElementById('nav');
-    window.scrollY > 50 ? nav.classList.add('scrolled') : nav.classList.remove('scrolled');
-};
-
 init();
 </script>
 </body>
-  </html>
-
+</html>
