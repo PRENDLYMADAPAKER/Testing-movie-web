@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NZM FLIX | Premium Library</title>
+    <title>NZM FLIX | All-in-One Premium</title>
     <style>
         :root { 
             --red: #E50914; --bg: #000000; --card-w: 155px; --card-h: 230px;
             --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Responsive scaling for PC/TV */
         @media (min-width: 1200px) { :root { --card-w: 190px; --card-h: 280px; } }
 
         body { margin: 0; background: var(--bg); color: white; font-family: var(--font-main); overflow-x: hidden; }
@@ -23,18 +22,18 @@
         /* --- NAVIGATION --- */
         header { position: fixed; top: 0; width: 100%; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; box-sizing: border-box; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); transition: 0.3s; }
         header.scrolled { background: var(--bg); border-bottom: 1px solid #222; }
-        .logo { color: var(--red); font-size: 28px; font-weight: 900; letter-spacing: -1.5px; cursor: pointer; }
+        .logo { color: var(--red); font-size: 28px; font-weight: 900; letter-spacing: -1.5px; cursor: pointer; text-decoration: none; }
 
         /* --- HERO --- */
         .hero { height: 75vh; background-size: cover; background-position: center top; position: relative; display: flex; align-items: flex-end; padding: 0 5% 60px; }
         .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 10%, transparent 80%); }
         .hero-body { position: relative; z-index: 10; max-width: 700px; }
-        .hero-body h1 { font-size: clamp(2.5rem, 6vw, 3.5rem); margin: 0; font-weight: 800; }
+        .hero-body h1 { font-size: clamp(2.5rem, 6vw, 3.5rem); margin: 0; font-weight: 800; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); }
 
         /* --- ROWS & CATEGORIES --- */
         .section { padding: 30px 0 0 5%; }
         .section h3 { font-size: 1.4rem; margin-bottom: 10px; color: #e5e5e5; }
-        .row { display: flex; gap: 12px; overflow-x: auto; padding: 15px 0 30px; scroll-behavior: smooth; }
+        .row { display: flex; gap: 15px; overflow-x: auto; padding: 15px 0 35px; scroll-behavior: smooth; }
         .row::-webkit-scrollbar { display: none; }
 
         .card { 
@@ -43,21 +42,21 @@
         }
         .card:focus, .card:hover { transform: scale(1.08); border-color: white; z-index: 10; }
         .card-img { width: 100%; height: var(--card-h); object-fit: cover; border-radius: 4px; background: #111; }
-        .card-name { font-size: 13px; font-weight: 600; margin-top: 8px; color: #b3b3b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-name { font-size: 14px; font-weight: 600; margin-top: 10px; color: #b3b3b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
         .card:focus .card-name, .card:hover .card-name { color: white; }
 
-        /* --- MODAL (PC/TV COMPACT PLAYER) --- */
+        /* --- MODAL (COMPACT PC/TV SIDEBAR) --- */
         .modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; overflow-y: auto; }
         .modal-content { display: flex; flex-direction: column; width: 100%; }
 
         @media (min-width: 1024px) {
             .modal-content { 
-                flex-direction: row-reverse; padding: 100px 5%; gap: 50px; 
+                flex-direction: row-reverse; padding: 80px 5%; gap: 50px; 
                 max-width: 1400px; margin: 0 auto; align-items: flex-start;
             }
             .video-wrap { 
-                width: 380px !important; flex-shrink: 0; position: sticky; top: 100px; 
-                border-radius: 8px; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.9);
+                width: 400px !important; flex-shrink: 0; position: sticky; top: 100px; 
+                border-radius: 8px; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,1);
             }
             .info-wrap { flex: 1; padding: 0 !important; }
         }
@@ -71,17 +70,20 @@
         .btn-red { background: var(--red); color: white; width: 100%; max-width: 350px; justify-content: center; margin: 20px 0; }
         .btn:focus { border-color: white; transform: scale(1.05); }
 
-        /* EPISODES */
-        .season-sel { background: #222; color: white; border: 1px solid #444; padding: 12px; border-radius: 4px; margin-bottom: 20px; outline: none; font-size: 16px; }
-        .ep-card { display: flex; gap: 15px; padding: 12px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; outline: none; align-items: center; transition: 0.2s; }
-        .ep-card:focus { background: #1a1a1a; border-color: white; }
-        .ep-thumb { width: 130px; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; }
+        /* EPISODES & DESCRIPTIONS */
+        .season-sel { background: #222; color: white; border: 1px solid #444; padding: 12px; border-radius: 4px; margin-bottom: 25px; outline: none; font-size: 16px; width: 200px; }
+        .ep-card { display: flex; gap: 20px; padding: 15px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; outline: none; transition: 0.2s; background: rgba(255,255,255,0.03); margin-bottom: 10px; }
+        .ep-card:focus, .ep-card:hover { background: #1a1a1a; border-color: white; transform: scale(1.01); }
+        .ep-thumb { width: 160px; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; background: #333; flex-shrink: 0; }
+        .ep-info { flex-grow: 1; }
+        .ep-info b { font-size: 16px; display: block; margin-bottom: 6px; color: #fff; }
+        .ep-info p { font-size: 13px; color: #999; line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        .close-btn { position: fixed; top: 25px; right: 25px; z-index: 3000; background: rgba(0,0,0,0.6); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 22px; outline: none; }
+        .close-btn { position: fixed; top: 25px; right: 25px; z-index: 3000; background: rgba(0,0,0,0.7); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 22px; outline: none; }
         .close-btn:focus { background: var(--red); }
 
         #searchView { position: fixed; inset: 0; background: var(--bg); z-index: 1500; display: none; padding: 100px 5%; overflow-y: auto; }
-        .search-box { width: 100%; max-width: 500px; display: block; margin: 0 auto 30px; padding: 15px; background: #222; border: 1px solid #444; color: white; border-radius: 50px; outline: none; font-size: 18px; }
+        .search-box { width: 100%; max-width: 500px; display: block; margin: 0 auto 40px; padding: 16px 25px; background: #222; border: 1px solid #444; color: white; border-radius: 50px; outline: none; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -95,12 +97,13 @@
 
 <main id="home">
     <div id="hero" class="hero"></div>
+    
     <div class="section"><h3>Top Philippines</h3><div class="row" id="ph-row"></div></div>
     <div class="section"><h3>Trending Now</h3><div class="row" id="trending-row"></div></div>
-    <div class="section"><h3>Action Thrillers</h3><div class="row" id="action-row"></div></div>
-    <div class="section"><h3>K-Drama</h3><div class="row" id="kdrama-row"></div></div>
-    <div class="section"><h3>Horror Night</h3><div class="row" id="horror-row"></div></div>
     <div class="section"><h3>Anime Universe</h3><div class="row" id="anime-row"></div></div>
+    <div class="section"><h3>K-Drama</h3><div class="row" id="kdrama-row"></div></div>
+    <div class="section"><h3>Action Thrillers</h3><div class="row" id="action-row"></div></div>
+    <div class="section"><h3>Horror Night</h3><div class="row" id="horror-row"></div></div>
     <div class="section"><h3>Sci-Fi & Fantasy</h3><div class="row" id="scifi-row"></div></div>
     <div class="section"><h3>Family & Kids</h3><div class="row" id="kids-row"></div></div>
     <div class="section"><h3>Asian Cinema</h3><div class="row" id="asian-row"></div></div>
@@ -115,7 +118,7 @@
         </div>
         <div class="info-wrap">
             <div id="metaContent"></div>
-            <div id="tvUI" style="display:none;">
+            <div id="tvUI" style="display:none; margin-top: 30px;">
                 <select id="seasonSelect" class="season-sel" onchange="loadEpisodes()"></select>
                 <div id="episodeList"></div>
             </div>
@@ -124,7 +127,7 @@
 </div>
 
 <div id="searchView">
-    <input type="text" id="searchInput" class="search-box" placeholder="Movies, TV, Genres...">
+    <input type="text" id="searchInput" class="search-box" placeholder="Search movies, shows, genres...">
     <div class="row" style="flex-wrap: wrap; justify-content: center; gap: 20px;" id="searchRes"></div>
 </div>
 
@@ -140,23 +143,19 @@ async function api(path) {
 }
 
 async function init() {
-    // Hero & Philippines
     const phData = await api('/trending/all/day?region=PH');
     setHero(phData.results[0]);
-    renderRow('ph-row', phData.results);
-
-    // Trending
-    renderRow('trending-row', (await api('/trending/all/week')).results);
     
-    // Categories using TMDB Genre IDs
-    renderRow('action-row', (await api('/discover/movie?with_genres=28')).results);
-    renderRow('kdrama-row', (await api('/discover/tv?with_original_language=ko&with_genres=18')).results);
-    renderRow('horror-row', (await api('/discover/movie?with_genres=27')).results);
+    renderRow('ph-row', phData.results);
+    renderRow('trending-row', (await api('/trending/all/week')).results);
     renderRow('anime-row', (await api('/discover/tv?with_genres=16&with_keywords=210024')).results);
-    renderRow('scifi-row', (await api('/discover/movie?with_genres=878,14')).results);
-    renderRow('kids-row', (await api('/discover/movie?with_genres=16,10751')).results);
-    renderRow('asian-row', (await api('/discover/tv?with_original_language=zh|th')).results);
-    renderRow('classic-row', (await api('/discover/movie?sort_by=release_date.asc&vote_count.gte=1000')).results);
+    renderRow('kdrama-row', (await api('/discover/tv?with_original_language=ko')).results);
+    renderRow('action-row', (await api('/discover/movie?with_genres=28')).results);
+    renderRow('horror-row', (await api('/discover/movie?with_genres=27')).results);
+    renderRow('scifi-row', (await api('/discover/movie?with_genres=878')).results);
+    renderRow('kids-row', (await api('/discover/movie?with_genres=10751,16')).results);
+    renderRow('asian-row', (await api('/discover/tv?with_original_language=zh|th|ja')).results);
+    renderRow('classic-row', (await api('/discover/movie?sort_by=release_date.asc&vote_count.gte=5000')).results);
 
     setTimeout(() => {
         document.getElementById('loader').style.opacity = "0";
@@ -185,7 +184,7 @@ function setHero(i) {
     h.innerHTML = `<div class="hero-overlay"></div>
     <div class="hero-body">
         <h1>${i.title || i.name}</h1>
-        <p style="color:#ccc; margin: 15px 0; font-size:17px;">${i.overview.slice(0, 160)}...</p>
+        <p style="color:#ccc; margin: 15px 0; font-size:17px; max-width: 600px;">${i.overview.slice(0, 160)}...</p>
         <button class="btn btn-white" onclick='openModal(${JSON.stringify(i).replace(/'/g,"")})'>▶ Play Trailer</button>
     </div>`;
 }
@@ -204,9 +203,9 @@ async function openModal(i) {
 
     document.getElementById('metaContent').innerHTML = `
         <h2 style="font-size: 2.8rem; margin:0 0 10px;">${i.title || i.name}</h2>
-        <div style="color:#46d369; font-weight:bold; margin-bottom:20px;">NZM Original • 2026</div>
+        <div style="color:#46d369; font-weight:bold; margin-bottom:20px;">Premium Content • 2026</div>
         <p style="color:#aaa; line-height:1.6; font-size:17px; margin-bottom:30px;">${i.overview}</p>
-        <button class="btn btn-red" id="fullBtn" onclick="watchFull(${i.id}, '${type}')">▶ WATCH NOW FULL CONTENT</button>
+        <button class="btn btn-red" id="fullBtn" onclick="watchFull(${i.id}, '${type}')">▶ WATCH FULL CONTENT</button>
     `;
 
     if(type === 'tv') {
@@ -227,14 +226,23 @@ async function loadEpisodes() {
     const d = await api(`/tv/${activeItem.id}/season/${s}`);
     const list = document.getElementById('episodeList');
     list.innerHTML = "";
+    
     d.episodes.forEach(e => {
         const div = document.createElement('div');
         div.className = 'ep-card';
         div.tabIndex = "0";
         div.onclick = () => watchFull(activeItem.id, 'tv', s, e.episode_number);
         div.onkeydown = (ev) => { if(ev.key === "Enter") watchFull(activeItem.id, 'tv', s, e.episode_number); };
-        div.innerHTML = `<img class="ep-thumb" src="${e.still_path ? POSTER + e.still_path : ''}">
-            <div><b>${e.episode_number}. ${e.name}</b></div>`;
+        
+        // Overview fix: Check if description exists, otherwise show 'No description available'
+        const desc = e.overview ? e.overview : "No description available for this episode.";
+        
+        div.innerHTML = `
+            <img class="ep-thumb" src="${e.still_path ? POSTER + e.still_path : ''}">
+            <div class="ep-info">
+                <b>${e.episode_number}. ${e.name}</b>
+                <p>${desc}</p>
+            </div>`;
         list.appendChild(div);
     });
 }
@@ -254,7 +262,7 @@ function closeModal() {
 
 function toggleSearch() {
     const s = document.getElementById('searchView');
-    s.style.display = s.style.display === 'block' ? 'none' : 'block';
+    s.style.display = (s.style.display === 'block') ? 'none' : 'block';
     if(s.style.display === 'block') document.getElementById('searchInput').focus();
 }
 
