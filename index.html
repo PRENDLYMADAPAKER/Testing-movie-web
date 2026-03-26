@@ -102,7 +102,7 @@
 </main>
 
 <div class="modal" id="playerModal">
-    <button class="close-btn" onclick="closeModal()">✕</button>
+    <button class="close-btn" onclick="history.back()">✕</button>
     <div class="modal-content">
         <div class="video-wrap" id="vidArea">
             <div class="loading-text">Requesting secure stream...</div>
@@ -168,6 +168,11 @@ async function init() {
     document.getElementById('loader').style.display = "none";
 }
 
+// BACK BUTTON HANDLING FOR TV
+window.onpopstate = function() {
+    closeModalLogic(); // Close modal if user hits 'Back'
+};
+
 function renderRow(id, data) {
     const container = document.getElementById(id);
     if (!container) return;
@@ -195,6 +200,10 @@ function setHero(i) {
 async function openModal(i) {
     activeItem = i;
     currentEp = { s: 1, e: 1 };
+    
+    // Add history state so 'Back' closes the modal
+    history.pushState({modal: true}, ""); 
+    
     document.getElementById('playerModal').style.display = "block";
     document.body.style.overflow = "hidden";
     document.getElementById('mainFrame').src = "";
@@ -259,13 +268,10 @@ function watchFull() {
     const type = activeItem.first_air_date ? 'tv' : 'movie';
     const { s, e } = currentEp;
 
-    // AUTO FULLSCREEN TRIGGER (Critical for TV)
+    // AUTO FULLSCREEN
     const container = document.getElementById('vidArea');
-    if (container.requestFullscreen) {
-        container.requestFullscreen().catch(() => {});
-    } else if (container.webkitRequestFullscreen) {
-        container.webkitRequestFullscreen();
-    }
+    if (container.requestFullscreen) { container.requestFullscreen().catch(() => {}); }
+    else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); }
 
     let url = "";
     if (currentServer === 1) {
@@ -280,9 +286,10 @@ function watchFull() {
     setTimeout(() => { f.src = url; }, 100);
 }
 
-function closeModal() {
-    if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
+// Separated logic so it can be called by 'X' button or Browser Back
+function closeModalLogic() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        document.exitFullscreen ? document.exitFullscreen().catch(()=>{}) : document.webkitExitFullscreen();
     }
     document.getElementById('playerModal').style.display = "none";
     document.getElementById('mainFrame').src = "";
@@ -291,8 +298,13 @@ function closeModal() {
 
 function toggleSearch() {
     const s = document.getElementById('searchView');
-    s.style.display = (s.style.display === 'block') ? 'none' : 'block';
-    if(s.style.display === 'block') document.getElementById('searchInput').focus();
+    if (s.style.display !== 'block') {
+        history.pushState({search: true}, "");
+        s.style.display = 'block';
+        document.getElementById('searchInput').focus();
+    } else {
+        history.back();
+    }
 }
 
 document.getElementById('searchInput').oninput = async (e) => {
@@ -306,7 +318,7 @@ document.getElementById('searchInput').oninput = async (e) => {
             const c = document.createElement('div');
             c.className = 'card';
             c.innerHTML = `<img class="card-img" src="${POSTER + i.poster_path}"><div class="card-name">${i.title || i.name}</div>`;
-            c.onclick = () => { toggleSearch(); openModal(i); };
+            c.onclick = () => { history.back(); openModal(i); };
             res.appendChild(c);
         });
     }
