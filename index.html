@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NZM FLIX</title>
+
+    <style>
+        :root {
+            --netflix-red: #e50914;
+            --netflix-black: #141414;
+            --card-width: 240px;
+            --card-height: 135px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            margin: 0;
+            background: var(--netflix-black);
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* HEADER */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 4%;
+            box-sizing: border-box;
+            transition: 0.5s;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+
+        header.scrolled { background-color: #000; }
+
+        header h2 {
+            color: var(--netflix-red);
+            margin: 0;
+            font-size: 26px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #search {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #555;
+            padding: 8px 15px;
+            border-radius: 4px;
+            color: white;
+            outline: none;
+            width: 200px;
+        }
+
+        /* HERO */
+        .hero {
+            height: 85vh;
+            display: flex;
+            align-items: center;
+            padding: 0 5%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 40%;
+            background: linear-gradient(to top, var(--netflix-black), transparent);
+        }
+
+        .heroContent { position: relative; z-index: 2; max-width: 600px; }
+        .hero h1 { font-size: clamp(2rem, 5vw, 4rem); margin: 0; }
+        .hero p { font-size: 1.1rem; line-height: 1.5; margin: 20px 0; color: #ccc; }
+
+        .heroButtons { display: flex; gap: 10px; }
+        .playBtn, .infoBtn {
+            padding: 12px 25px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+        .playBtn { background: white; color: black; }
+        .infoBtn { background: rgba(109, 109, 110, 0.7); color: white; }
+
+        /* ROWS */
+        .section { padding: 20px 4%; }
+        .row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+        .row::-webkit-scrollbar { display: none; }
+
+        .card {
+            min-width: var(--card-width);
+            height: var(--card-height);
+            background: #222;
+            border-radius: 4px;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: scale(1.25);
+            z-index: 10;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+        }
+
+        .card img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+
+        /* PLAYER MODAL */
+        .player {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--netflix-black);
+            z-index: 2000;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .videoBox { position: relative; padding-top: 56.25%; background: black; }
+        .videoBox iframe { position: absolute; top: 0; width: 100%; height: 100%; border: none; }
+
+        .backBtn {
+            position: absolute; top: 20px; left: 20px;
+            z-index: 2001; background: rgba(0,0,0,0.5);
+            color: white; border: none; padding: 10px 15px;
+            border-radius: 50%; cursor: pointer; font-size: 20px;
+        }
+
+        .server-status {
+            padding: 10px 5%;
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            gap: 10px;
+        }
+
+        .next-server { color: var(--netflix-red); cursor: pointer; text-decoration: underline; }
+
+        .episode {
+            display: flex; gap: 15px; padding: 15px;
+            background: #1f1f1f; margin: 10px 5%; border-radius: 4px; cursor: pointer;
+        }
+        .episode img { width: 150px; height: 85px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<header id="mainHeader">
+    <h2>NZM FLIX</h2>
+    <input id="search" placeholder="Search titles...">
+</header>
+
+<div class="hero" id="hero"></div>
+
+<div class="section"><h3>Trending Now</h3><div class="row" id="trending"></div></div>
+<div class="section"><h3>Continue Watching</h3><div class="row" id="continue"></div></div>
+<div class="section"><h3>Top Rated</h3><div class="row" id="top"></div></div>
+<div class="section"><h3>Action</h3><div class="row" id="action"></div></div>
+<div class="section"><h3>TV Shows</h3><div class="row" id="tv"></div></div>
+
+<div class="player" id="player">
+    <div class="videoBox">
+        <button class="backBtn" onclick="closePlayer()">✕</button>
+        <iframe id="frame" allowfullscreen allow="autoplay"></iframe>
+    </div>
+    <div class="server-status">
+        Something not loading? <span class="next-server" onclick="tryNextServer()">Try a different server</span>
+    </div>
+    <div id="playerDetails" style="padding: 20px 5%;"></div>
+    <div style="padding: 0 5% 20px;">
+        <select id="season" style="background:#333; color:white; border:none; padding:8px;"></select>
+    </div>
+    <div id="episodes"></div>
+</div>
+
+<script>
+const API = "2f7637ba9b3253a84483afa03480473a";
+const IMG = "https://image.tmdb.org/t/p/original";
+
+let currentServers = [];
+let currentServerIndex = 0;
+
+window.onscroll = () => {
+    const head = document.getElementById('mainHeader');
+    window.scrollY > 50 ? head.classList.add('scrolled') : head.classList.remove('scrolled');
+};
+
+async function get(u) { return (await fetch(u)).json(); }
+
+async function loadHome() {
+    const trend = await get(`https://api.themoviedb.org/3/trending/all/day?api_key=${API}`);
+    setHero(trend.results[0]);
+    display(trend.results, "trending");
+
+    const top = await get(`https://api.themoviedb.org/3/movie/top_rated?api_key=${API}`);
+    display(top.results, "top");
+
+    const action = await get(`https://api.themoviedb.org/3/discover/movie?api_key=${API}&with_genres=28`);
+    display(action.results, "action");
+
+    const tv = await get(`https://api.themoviedb.org/3/trending/tv/day?api_key=${API}`);
+    display(tv.results, "tv");
+
+    loadContinue();
+}
+
+function setHero(i) {
+    const hero = document.getElementById("hero");
+    hero.style.backgroundImage = `linear-gradient(to right, #141414, transparent), url(${IMG + i.backdrop_path})`;
+    hero.innerHTML = `
+        <div class="heroContent">
+            <h1>${i.title || i.name}</h1>
+            <p>${i.overview}</p>
+            <div class="heroButtons">
+                <button class="playBtn" onclick='playHero(${JSON.stringify(i)})'>▶ Play</button>
+                <button class="infoBtn" onclick="openPlayer(${JSON.stringify(i).replace(/"/g,'&quot;')})">More Info</button>
+            </div>
+        </div>`;
+}
+
+function display(list, id) {
+    const row = document.getElementById(id);
+    row.innerHTML = "";
+    list.forEach(i => {
+        if(!i.backdrop_path) return;
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<img src="${IMG + i.backdrop_path}" loading="lazy">`;
+        card.onclick = () => openPlayer(i);
+        row.appendChild(card);
+    });
+}
+
+function openPlayer(i) {
+    document.getElementById("player").style.display = "block";
+    document.getElementById("playerDetails").innerHTML = `
+        <h2 style="margin:0">${i.title || i.name}</h2>
+        <p style="color:#46d369; font-weight:bold; margin:10px 0;">${Math.round(i.vote_average*10)}% Match</p>
+        <p>${i.overview}</p>`;
+    
+    if(i.first_air_date) loadTV(i.id);
+    else {
+        document.getElementById("season").style.display = "none";
+        document.getElementById("episodes").innerHTML = "";
+        playNow(i.id, 'movie');
+    }
+}
+
+function playHero(i) { openPlayer(i); playNow(i.id, i.first_air_date ? 'tv' : 'movie'); }
+
+function playNow(id, type, season=1, episode=1) {
+    saveContinue(id, type, season, episode);
+    
+    currentServers = [
+        type === "tv" ? `https://vidsync.xyz/embed/tv/${id}/${season}/${episode}?autoPlay=true&autoNext=true` : `https://vidsync.xyz/embed/movie/${id}?autoPlay=true`,
+        type === "tv" ? `https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}` : `https://vidsrc.xyz/embed/movie/${id}`,
+        type === "tv" ? `https://vidsrc.me/embed/tv/${id}/${season}/${episode}` : `https://vidsrc.me/embed/movie/${id}`,
+        type === "tv" ? `https://vidsrc.to/embed/tv/${id}/${season}/${episode}` : `https://vidsrc.to/embed/movie/${id}`
+    ];
+    
+    currentServerIndex = 0;
+    document.getElementById("frame").src = currentServers[currentServerIndex];
+}
+
+function tryNextServer() {
+    currentServerIndex++;
+    if (currentServerIndex < currentServers.length) {
+        document.getElementById("frame").src = currentServers[currentServerIndex];
+    } else {
+        alert("All servers attempted. Content might be unavailable.");
+    }
+}
+
+async function loadTV(id) {
+    const data = await get(`https://api.themoviedb.org/3/tv/${id}?api_key=${API}`);
+    const sea = document.getElementById("season");
+    sea.style.display = "block"; sea.innerHTML = "";
+    data.seasons.forEach(s => {
+        if(s.season_number === 0) return;
+        const o = document.createElement("option");
+        o.value = s.season_number; o.text = `Season ${s.season_number}`;
+        sea.appendChild(o);
+    });
+    sea.onchange = () => loadEpisodes(id, sea.value);
+    loadEpisodes(id, 1);
+}
+
+async function loadEpisodes(id, sNum) {
+    const data = await get(`https://api.themoviedb.org/3/tv/${id}/season/${sNum}?api_key=${API}`);
+    const box = document.getElementById("episodes");
+    box.innerHTML = "";
+    data.episodes.forEach(e => {
+        const d = document.createElement("div");
+        d.className = "episode";
+        d.onclick = () => playNow(id, "tv", sNum, e.episode_number);
+        d.innerHTML = `
+            <img src="${e.still_path ? IMG+e.still_path : ''}">
+            <div><b>${e.episode_number}. ${e.name}</b><p style="font-size:12px; color:#aaa;">${e.overview}</p></div>`;
+        box.appendChild(d);
+    });
+}
+
+function closePlayer() {
+    document.getElementById("player").style.display = "none";
+    document.getElementById("frame").src = "";
+}
+
+function saveContinue(id, type, season, ep) {
+    let data = JSON.parse(localStorage.getItem("continue") || "[]");
+    data = data.filter(x => x.id !== id);
+    data.unshift({id, type, season, ep});
+    localStorage.setItem("continue", JSON.stringify(data.slice(0,10)));
+}
+
+async function loadContinue() {
+    const list = JSON.parse(localStorage.getItem("continue") || "[]");
+    const row = document.getElementById("continue");
+    if(list.length === 0) return row.parentElement.style.display = "none";
+    
+    for(const item of list) {
+        const d = await get(`https://api.themoviedb.org/3/${item.type}/${item.id}?api_key=${API}`);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<img src="${IMG + d.backdrop_path}">`;
+        card.onclick = () => { openPlayer(d); playNow(item.id, item.type, item.season, item.ep); };
+        row.appendChild(card);
+    }
+}
+
+loadHome();
+</script>
+</body>
+  </html>
+
