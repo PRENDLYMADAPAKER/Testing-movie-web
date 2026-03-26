@@ -61,20 +61,15 @@ z-index:2;
 max-width:500px;
 }
 
-.heroButtons{
-display:flex;
-gap:10px;
-margin-top:15px;
-}
-
+/* BUTTONS */
 .btn{
 padding:10px 20px;
 border-radius:4px;
 cursor:pointer;
 }
-
 .play{background:white;color:black}
 .info{background:rgba(255,255,255,.2)}
+.add{background:rgba(0,255,0,.2)}
 
 /* ROW */
 .section{padding:20px}
@@ -115,6 +110,19 @@ opacity:0;
 }
 .card:hover .overlay{opacity:1}
 
+/* HOVER TRAILER */
+.preview{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:none;
+}
+.card:hover .preview{
+display:block;
+}
+
 /* PLAYER */
 .player{
 position:fixed;
@@ -129,7 +137,6 @@ flex-direction:column;
 overflow-y:auto;
 }
 
-/* VIDEO */
 .videoBox{
 position:relative;
 width:100%;
@@ -143,7 +150,6 @@ width:100%;
 height:100%;
 }
 
-/* CONTROLS */
 .controls{
 position:absolute;
 top:10px;
@@ -161,63 +167,13 @@ padding:8px;
 cursor:pointer;
 }
 
-/* DETAILS */
-.details{padding:20px}
-
-/* EPISODES */
-.episodes{
-padding:20px;
-display:flex;
-flex-direction:column;
-gap:10px;
-}
-
-.episode{
-display:flex;
-gap:10px;
-background:#1f1f1f;
-padding:10px;
-border-radius:6px;
-cursor:pointer;
-}
-
-.episode img{
-width:140px;
-height:80px;
-object-fit:cover;
-}
-
-.episode p{
-font-size:12px;
-opacity:.8;
-display:-webkit-box;
--webkit-line-clamp:2;
--webkit-box-orient:vertical;
-overflow:hidden;
-}
-
-/* SELECTS */
-.selectBar{
-display:flex;
-gap:10px;
-padding:0 20px;
-}
-
-select{
-background:#222;
-border:none;
-color:white;
-padding:8px;
-}
-
-/* SKIP INTRO */
-.skipIntro{
+/* AUTOPLAY NEXT */
+.nextBox{
 position:absolute;
 bottom:20px;
 right:20px;
-background:rgba(0,0,0,.7);
-padding:10px;
-cursor:pointer;
+background:black;
+padding:15px;
 display:none;
 }
 
@@ -225,6 +181,7 @@ display:none;
 @media(max-width:600px){
 .card{min-width:110px;height:160px}
 .hero{height:70vh}
+header h2{font-size:16px}
 }
 </style>
 </head>
@@ -244,28 +201,18 @@ display:none;
 </div>
 
 <div class="section">
+<h3>My List ⭐</h3>
+<div class="row" id="mylist"></div>
+</div>
+
+<div class="section">
 <h3>Top Rated</h3>
 <div class="row" id="top"></div>
 </div>
 
 <div class="section">
-<h3>Action</h3>
-<div class="row" id="action"></div>
-</div>
-
-<div class="section">
-<h3>Comedy</h3>
-<div class="row" id="comedy"></div>
-</div>
-
-<div class="section">
 <h3>TV Shows</h3>
 <div class="row" id="tv"></div>
-</div>
-
-<div class="section">
-<h3>Continue Watching</h3>
-<div class="row" id="continue"></div>
 </div>
 
 <div class="player" id="player">
@@ -274,40 +221,18 @@ display:none;
 
 <div class="controls">
 <button class="ctrlBtn" onclick="closePlayer()">←</button>
-<button class="ctrlBtn" onclick="toggleSub()">CC</button>
 <button class="ctrlBtn" onclick="nextEpisode()">Next</button>
 </div>
 
-<div class="skipIntro" id="skipIntro" onclick="skipIntro()">
-Skip Intro
+<div class="nextBox" id="nextBox">
+Next episode in <span id="count">5</span>s
 </div>
 
-<iframe id="frame"
-allowfullscreen
-allow="autoplay; fullscreen; encrypted-media">
-</iframe>
+<iframe id="frame" allowfullscreen></iframe>
 
 </div>
 
-<div class="details" id="details"></div>
-
-<div class="selectBar">
-<select id="season"></select>
-<select id="server">
-<option value="1">Server 1</option>
-<option value="2">Server 2</option>
-<option value="3">Server 3</option>
-</select>
-
-<select id="quality">
-<option value="auto">Auto</option>
-<option value="1080">1080p</option>
-<option value="720">720p</option>
-<option value="480">480p</option>
-</select>
-</div>
-
-<div class="episodes" id="episodes"></div>
+<div id="episodes"></div>
 
 </div>
 
@@ -319,84 +244,8 @@ async function get(u){
 return (await fetch(u)).json();
 }
 
-/* HOME */
-async function loadHome(){
-
-const t=await get(`https://api.themoviedb.org/3/trending/all/day?api_key=${API}`);
-display(t.results,"trending");
-setHero(t.results[0]);
-
-const top=await get(`https://api.themoviedb.org/3/movie/top_rated?api_key=${API}`);
-display(top.results,"top");
-
-const act=await get(`https://api.themoviedb.org/3/discover/movie?api_key=${API}&with_genres=28`);
-display(act.results,"action");
-
-const com=await get(`https://api.themoviedb.org/3/discover/movie?api_key=${API}&with_genres=35`);
-display(com.results,"comedy");
-
-const tv=await get(`https://api.themoviedb.org/3/trending/tv/day?api_key=${API}`);
-display(tv.results,"tv");
-
-loadContinue();
-}
- /* HERO */
-function setHero(i){
-
-const hero=document.getElementById("hero");
-
-hero.style.backgroundImage=`url(${IMG+i.backdrop_path})`;
-
-hero.innerHTML=`
-<div class="heroContent">
-<h1>${i.title||i.name}</h1>
-<p>${i.overview||""}</p>
-
-<div class="heroButtons">
-<div class="btn play" id="heroPlay">▶ Play</div>
-<div class="btn info" id="heroInfo">More Info</div>
-</div>
-</div>
-`;
-
-document.getElementById("heroPlay").onclick=()=>{
-playNow(i.id,i.first_air_date?"tv":"movie")
-};
-
-document.getElementById("heroInfo").onclick=()=>{
-openPlayer(i)
-};
-
- }
-
 /* DISPLAY */
-
-
-/* PLAYER */
-let currentId=0;
-let currentType="movie";
-let currentSeason=1;
-let currentEpisode=1;
-
-/* OPEN PLAYER */
-async function openPlayer(i){
-
-document.getElementById("player").style.display="flex";
-
-currentId=i.id;
-currentType=i.first_air_date?"tv":"movie";
-
-document.getElementById("details").innerHTML=`
-<h2>${i.title||i.name}</h2>
-<p>${i.overview||""}</p>
-<button onclick="playNow(${i.id},'${currentType}')">▶ Play</button>
-`;
-
-autoTrailer(i.id,currentType);
-
-if(currentType==="tv"){
-loadTV(i.id);
-}elfunction display(list,id){
+function display(list,id){
 
 const row=document.getElementById(id);
 row.innerHTML="";
@@ -411,243 +260,138 @@ card.className="card";
 card.innerHTML=`
 <img src="${IMG+i.poster_path}">
 <div class="overlay">${i.title||i.name}</div>
+<div class="preview" id="p${i.id}"></div>
 `;
 
 card.onclick=()=>openPlayer(i);
 
+/* HOVER TRAILER */
+card.onmouseenter=()=>loadPreview(i);
+card.onmouseleave=()=>stopPreview(i);
+
 row.appendChild(card);
 
 });
-
- }se{
-document.getElementById("episodes").innerHTML="";
 }
 
+ <script>
+
+/* HERO */
+function setHero(i){
+const hero=document.getElementById("hero");
+hero.style.backgroundImage=`url(${IMG+i.backdrop_path})`;
+
+hero.innerHTML=`
+<div class="heroContent">
+<h1>${i.title||i.name}</h1>
+<p>${i.overview||""}</p>
+<div class="btn play" onclick="playNow(${i.id},'movie')">▶ Play</div>
+<div class="btn add" onclick='addList(${JSON.stringify(i)})'>+ My List</div>
+</div>
+`;
 }
 
-/* AUTO TRAILER */
-async function autoTrailer(id,type){
+/* HOME */
+async function loadHome(){
+const t=await get(`https://api.themoviedb.org/3/trending/all/day?api_key=${API}`);
+display(t.results,"trending");
+setHero(t.results[0]);
 
-const res=await get(`https://api.themoviedb.org/3/${type}/${id}/videos?api_key=${API}`);
+const top=await get(`https://api.themoviedb.org/3/movie/top_rated?api_key=${API}`);
+display(top.results,"top");
 
+const tv=await get(`https://api.themoviedb.org/3/trending/tv/day?api_key=${API}`);
+display(tv.results,"tv");
+
+loadList();
+}
+
+/* PREVIEW */
+async function loadPreview(i){
+const res=await get(`https://api.themoviedb.org/3/${i.first_air_date?"tv":"movie"}/${i.id}/videos?api_key=${API}`);
 const trailer=res.results.find(v=>v.type==="Trailer");
-
 if(!trailer) return;
 
-document.getElementById("frame").src=
-`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1`;
+document.getElementById("p"+i.id).innerHTML=
+`<iframe src="https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1"></iframe>`;
+}
 
+function stopPreview(i){
+document.getElementById("p"+i.id).innerHTML="";
+}
+
+/* PLAYER */
+let currentEpisode=1;
+let timer;
+
+function openPlayer(i){
+document.getElementById("player").style.display="flex";
+playNow(i.id,i.first_air_date?"tv":"movie");
 }
 
 /* PLAY */
-function playNow(id,type,season=1,episode=1){
+function playNow(id,type){
+document.getElementById("frame").src=
+type==="tv"
+?`https://vidsrc.xyz/embed/tv?tmdb=${id}&season=1&episode=${currentEpisode}`
+:`https://vidsrc.xyz/embed/movie?tmdb=${id}`;
 
-currentId=id;
-currentType=type;
-currentSeason=season;
-currentEpisode=episode;
-
-saveContinue(id,type,season,episode);
-
-loadVideo();
-
+startNextTimer();
 }
 
-/* VIDEO LOAD */
-function loadVideo(){
+/* AUTO NEXT */
+function startNextTimer(){
+let c=5;
+const box=document.getElementById("nextBox");
+box.style.display="block";
 
-const server=document.getElementById("server").value;
-
-let url="";
-
-if(server==1){
-
-url=currentType==="tv"
-?`https://vidsrc.xyz/embed/tv?tmdb=${currentId}&season=${currentSeason}&episode=${currentEpisode}`
-:`https://vidsrc.xyz/embed/movie?tmdb=${currentId}`;
-
+timer=setInterval(()=>{
+c--;
+document.getElementById("count").innerText=c;
+if(c<=0){
+clearInterval(timer);
+nextEpisode();
+}
+},1000);
 }
 
-if(server==2){
-
-url=currentType==="tv"
-?`https://vidlink.pro/tv/${currentId}/${currentSeason}/${currentEpisode}`
-:`https://vidlink.pro/movie/${currentId}`;
-
-}
-
-if(server==3){
-
-url=currentType==="tv"
-?`https://embed.su/embed/tv/${currentId}/${currentSeason}/${currentEpisode}`
-:`https://embed.su/embed/movie/${currentId}`;
-
-}
-
-document.getElementById("frame").src=url;
-
-/* SHOW SKIP INTRO */
-document.getElementById("skipIntro").style.display="block";
-
-}
-
-/* NEXT EPISODE */
 function nextEpisode(){
-
 currentEpisode++;
-
-loadVideo();
-
-}
-
-/* SKIP INTRO */
-function skipIntro(){
-
-const f=document.getElementById("frame");
-
-try{
-f.contentWindow.postMessage({type:"seek",time:85},"*");
-}catch(e){}
-
-}
-
-/* SUBTITLE TOGGLE */
-let sub=false;
-
-function toggleSub(){
-
-sub=!sub;
-
-const f=document.getElementById("frame");
-
-try{
-f.contentWindow.postMessage({type:"subtitle",enabled:sub},"*");
-}catch(e){}
-
-}
-
-/* TV */
-async function loadTV(id){
-
-const data=await get(`https://api.themoviedb.org/3/tv/${id}?api_key=${API}`);
-
-const s=document.getElementById("season");
-s.innerHTML="";
-
-data.seasons.forEach(se=>{
-const o=document.createElement("option");
-o.value=se.season_number;
-o.text="Season "+se.season_number;
-s.appendChild(o);
-});
-
-s.onchange=()=>{
-currentSeason=s.value;
-loadEpisodes(id,s.value);
-};
-
-loadEpisodes(id,s.value);
-
-}
-
-/* EPISODES */
-async function loadEpisodes(id,season){
-
-const data=await get(`https://api.themoviedb.org/3/tv/${id}/season/${season}?api_key=${API}`);
-
-const box=document.getElementById("episodes");
-box.innerHTML="";
-
-data.episodes.forEach(ep=>{
-
-const div=document.createElement("div");
-div.className="episode";
-
-div.onclick=()=>{
-currentEpisode=ep.episode_number;
-playNow(id,"tv",season,ep.episode_number);
-};
-
-div.innerHTML=`
-<img src="${ep.still_path?IMG+ep.still_path:""}">
-<div>
-<b>Episode ${ep.episode_number}</b>
-<p>${ep.overview||""}</p>
-</div>
-`;
-
-box.appendChild(div);
-
-});
-
+playNow(currentEpisode,"tv");
 }
 
 /* CLOSE */
 function closePlayer(){
+clearInterval(timer);
 document.getElementById("player").style.display="none";
 document.getElementById("frame").src="";
 }
 
+/* MY LIST */
+function addList(i){
+let list=JSON.parse(localStorage.getItem("mylist")||"[]");
+list.unshift(i);
+localStorage.setItem("mylist",JSON.stringify(list));
+loadList();
+}
+
+function loadList(){
+const list=JSON.parse(localStorage.getItem("mylist")||"[]");
+display(list,"mylist");
+}
+
 /* SEARCH */
 document.getElementById("search").addEventListener("input",async e=>{
-
 const q=e.target.value;
-
 if(q.length<2) return;
 
 const data=await get(`https://api.themoviedb.org/3/search/multi?api_key=${API}&query=${q}`);
-
 display(data.results,"trending");
-
 });
-
-/* CONTINUE WATCHING */
-function saveContinue(id,type,season,episode){
-
-const list=JSON.parse(localStorage.getItem("continue")||"[]");
-
-list.unshift({id,type,season,episode});
-
-localStorage.setItem("continue",JSON.stringify(list.slice(0,20)));
-
-loadContinue();
-
-}
-
-async function loadContinue(){
-
-const list=JSON.parse(localStorage.getItem("continue")||"[]");
-
-const row=document.getElementById("continue");
-row.innerHTML="";
-
-for(const i of list){
-
-const d=await get(`https://api.themoviedb.org/3/${i.type}/${i.id}?api_key=${API}`);
-
-const card=document.createElement("div");
-card.className="card";
-
-card.innerHTML=`<img src="${IMG+d.poster_path}">`;
-
-card.onclick=()=>{
-
-openPlayer(d);
-playNow(i.id,i.type,i.season,i.episode);
-
-};
-
-row.appendChild(card);
-
-}
-
-}
-
-/* SERVER SWITCH */
-document.getElementById("server").onchange=loadVideo;
 
 /* INIT */
 loadHome();
+
 </script>
 
 </body>
