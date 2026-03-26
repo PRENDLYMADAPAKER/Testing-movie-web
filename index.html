@@ -19,7 +19,7 @@ header{
 position:fixed;
 top:0;
 width:100%;
-z-index:999;
+z-index:100;
 display:flex;
 justify-content:space-between;
 align-items:center;
@@ -27,42 +27,32 @@ padding:15px 20px;
 background:linear-gradient(to bottom,rgba(0,0,0,.9),transparent);
 }
 
-header h2{
-margin:0;
-font-size:20px;
-letter-spacing:1px;
-}
-
 #search{
-background:rgba(255,255,255,.1);
+background:rgba(255,255,255,.15);
 border:none;
 padding:8px 12px;
 border-radius:4px;
 color:white;
-width:180px;
 outline:none;
 }
 
 /* HERO */
 .hero{
-height:80vh;
+height:85vh;
 display:flex;
-flex-direction:column;
-justify-content:flex-end;
+align-items:flex-end;
 padding:60px 30px;
 background-size:cover;
 background-position:center;
 position:relative;
-margin-bottom:10px;
 }
 
-.hero::after{
+.hero:after{
 content:"";
 position:absolute;
-bottom:0;
 width:100%;
 height:100%;
-background:linear-gradient(to top,#141414,transparent,transparent);
+background:linear-gradient(to top,#141414,transparent);
 }
 
 .heroContent{
@@ -71,61 +61,29 @@ z-index:2;
 max-width:500px;
 }
 
-.hero h1{
-margin:0;
-font-size:40px;
-}
-
-.hero p{
-opacity:.8;
-display:-webkit-box;
--webkit-line-clamp:3;
--webkit-box-orient:vertical;
-overflow:hidden;
-}
-
 .heroButtons{
-margin-top:15px;
 display:flex;
 gap:10px;
+margin-top:15px;
 }
 
-.playBtn{
-background:white;
-color:black;
-padding:10px 20px;
-border-radius:4px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.infoBtn{
-background:rgba(255,255,255,.2);
+.btn{
 padding:10px 20px;
 border-radius:4px;
 cursor:pointer;
 }
+
+.play{background:white;color:black}
+.info{background:rgba(255,255,255,.2)}
 
 /* ROW */
-.section{
-padding:0 20px;
-margin-top:20px;
-}
-
-.section h3{
-margin-bottom:10px;
-}
-
+.section{padding:20px}
 .row{
 display:flex;
 gap:10px;
 overflow-x:auto;
-scroll-behavior:smooth;
 }
-
-.row::-webkit-scrollbar{
-display:none;
-}
+.row::-webkit-scrollbar{display:none}
 
 /* CARD */
 .card{
@@ -136,35 +94,28 @@ overflow:hidden;
 position:relative;
 cursor:pointer;
 transition:.3s;
-background:#000;
 }
-
 .card img{
 width:100%;
 height:100%;
 object-fit:cover;
 }
-
 .card:hover{
 transform:scale(1.15);
 z-index:5;
 }
 
-.cardOverlay{
+.overlay{
 position:absolute;
 bottom:0;
 width:100%;
 padding:10px;
 background:linear-gradient(to top,black,transparent);
 opacity:0;
-transition:.3s;
 }
+.card:hover .overlay{opacity:1}
 
-.card:hover .cardOverlay{
-opacity:1;
-}
-
-/* PLAYER PAGE */
+/* PLAYER */
 .player{
 position:fixed;
 top:0;
@@ -172,7 +123,7 @@ left:0;
 width:100%;
 height:100%;
 background:#141414;
-z-index:9999;
+z-index:999;
 display:none;
 flex-direction:column;
 overflow-y:auto;
@@ -180,12 +131,11 @@ overflow-y:auto;
 
 /* VIDEO */
 .videoBox{
-width:100%;
-background:black;
 position:relative;
+width:100%;
 padding-top:56.25%;
+background:black;
 }
-
 .videoBox iframe{
 position:absolute;
 top:0;
@@ -193,42 +143,33 @@ width:100%;
 height:100%;
 }
 
-/* PLAYER TOP */
-.playerTop{
+/* CONTROLS */
+.controls{
 position:absolute;
 top:10px;
 left:10px;
 z-index:5;
+display:flex;
+gap:5px;
 }
 
-.backBtn{
+.ctrlBtn{
 background:rgba(0,0,0,.6);
 border:none;
 color:white;
-padding:8px 12px;
+padding:8px;
 cursor:pointer;
 }
 
 /* DETAILS */
-.playerDetails{
-padding:20px;
-}
-
-.playerDetails h2{
-margin:0;
-}
-
-.meta{
-opacity:.7;
-margin:5px 0;
-}
+.details{padding:20px}
 
 /* EPISODES */
 .episodes{
 padding:20px;
 display:flex;
 flex-direction:column;
-gap:12px;
+gap:10px;
 }
 
 .episode{
@@ -238,25 +179,15 @@ background:#1f1f1f;
 padding:10px;
 border-radius:6px;
 cursor:pointer;
-transition:.2s;
-}
-
-.episode:hover{
-background:#333;
 }
 
 .episode img{
 width:140px;
 height:80px;
 object-fit:cover;
-border-radius:4px;
 }
 
-.episodeInfo{
-flex:1;
-}
-
-.episodeInfo p{
+.episode p{
 font-size:12px;
 opacity:.8;
 display:-webkit-box;
@@ -265,20 +196,35 @@ display:-webkit-box;
 overflow:hidden;
 }
 
-/* SEASON */
-.seasonSelect{
-margin:10px 0;
+/* SELECTS */
+.selectBar{
+display:flex;
+gap:10px;
+padding:0 20px;
+}
+
+select{
 background:#222;
 border:none;
 color:white;
 padding:8px;
 }
 
+/* SKIP INTRO */
+.skipIntro{
+position:absolute;
+bottom:20px;
+right:20px;
+background:rgba(0,0,0,.7);
+padding:10px;
+cursor:pointer;
+display:none;
+}
+
 /* MOBILE */
 @media(max-width:600px){
-.hero h1{font-size:26px}
 .card{min-width:110px;height:160px}
-.episode img{width:120px;height:70px}
+.hero{height:70vh}
 }
 </style>
 </head>
@@ -287,7 +233,7 @@ padding:8px;
 
 <header>
 <h2>NZM FLIX</h2>
-<input id="search" placeholder="Search movies...">
+<input id="search" placeholder="Search">
 </header>
 
 <div class="hero" id="hero"></div>
@@ -325,15 +271,41 @@ padding:8px;
 <div class="player" id="player">
 
 <div class="videoBox">
-<div class="playerTop">
-<button class="backBtn" onclick="closePlayer()">← Back</button>
-</div>
-<iframe id="frame"></iframe>
+
+<div class="controls">
+<button class="ctrlBtn" onclick="closePlayer()">←</button>
+<button class="ctrlBtn" onclick="toggleSub()">CC</button>
+<button class="ctrlBtn" onclick="nextEpisode()">Next</button>
 </div>
 
-<div class="playerDetails" id="playerDetails"></div>
+<div class="skipIntro" id="skipIntro" onclick="skipIntro()">
+Skip Intro
+</div>
 
-<select class="seasonSelect" id="season"></select>
+<iframe id="frame"
+allowfullscreen
+allow="autoplay; fullscreen; encrypted-media">
+</iframe>
+
+</div>
+
+<div class="details" id="details"></div>
+
+<div class="selectBar">
+<select id="season"></select>
+<select id="server">
+<option value="1">Server 1</option>
+<option value="2">Server 2</option>
+<option value="3">Server 3</option>
+</select>
+
+<select id="quality">
+<option value="auto">Auto</option>
+<option value="1080">1080p</option>
+<option value="720">720p</option>
+<option value="480">480p</option>
+</select>
+</div>
 
 <div class="episodes" id="episodes"></div>
 
@@ -344,24 +316,24 @@ const API="2f7637ba9b3253a84483afa03480473a";
 const IMG="https://image.tmdb.org/t/p/original";
 
 async function get(u){
-return (await fetch(u)).json()
+return (await fetch(u)).json();
 }
 
-/* HOME LOAD */
+/* HOME */
 async function loadHome(){
 
-const trending=await get(`https://api.themoviedb.org/3/trending/all/day?api_key=${API}`);
-display(trending.results,"trending");
-setHero(trending.results[0]);
+const t=await get(`https://api.themoviedb.org/3/trending/all/day?api_key=${API}`);
+display(t.results,"trending");
+setHero(t.results[0]);
 
 const top=await get(`https://api.themoviedb.org/3/movie/top_rated?api_key=${API}`);
 display(top.results,"top");
 
-const action=await get(`https://api.themoviedb.org/3/discover/movie?api_key=${API}&with_genres=28`);
-display(action.results,"action");
+const act=await get(`https://api.themoviedb.org/3/discover/movie?api_key=${API}&with_genres=28`);
+display(act.results,"action");
 
-const comedy=await get(`https://api.themoviedb.org/3/discover/movie?api_key=${API}&with_genres=35`);
-display(comedy.results,"comedy");
+const com=await get(`https://api.themoviedb.org/3/discover/movie?api_key=${API}&with_genres=35`);
+display(com.results,"comedy");
 
 const tv=await get(`https://api.themoviedb.org/3/trending/tv/day?api_key=${API}`);
 display(tv.results,"tv");
@@ -370,6 +342,7 @@ loadContinue();
 }
  /* HERO */
 function setHero(i){
+
 const hero=document.getElementById("hero");
 
 hero.style.backgroundImage=`url(${IMG+i.backdrop_path})`;
@@ -380,15 +353,17 @@ hero.innerHTML=`
 <p>${i.overview||""}</p>
 
 <div class="heroButtons">
-<div class="playBtn" onclick="playHero(${i.id},'${i.first_air_date?"tv":"movie"}')">▶ Play</div>
-<div class="infoBtn" onclick="openPlayer(${JSON.stringify(i).replace(/"/g,'&quot;')})">More Info</div>
+<div class="btn play" onclick="playNow(${i.id},'${i.first_air_date?"tv":"movie"}')">▶ Play</div>
+<div class="btn info" onclick='openPlayer(${JSON.stringify(i)})'>More Info</div>
 </div>
 </div>
 `;
+
 }
 
-/* DISPLAY ROW */
+/* DISPLAY */
 function display(list,id){
+
 const row=document.getElementById(id);
 row.innerHTML="";
 
@@ -401,76 +376,170 @@ card.className="card";
 
 card.innerHTML=`
 <img src="${IMG+i.poster_path}">
-<div class="cardOverlay">
-<b>${i.title||i.name}</b>
-</div>
+<div class="overlay">${i.title||i.name}</div>
 `;
 
 card.onclick=()=>openPlayer(i);
+
 row.appendChild(card);
 
 });
+
 }
 
+/* PLAYER */
+let currentId=0;
+let currentType="movie";
+let currentSeason=1;
+let currentEpisode=1;
+
 /* OPEN PLAYER */
-function openPlayer(i){
+async function openPlayer(i){
 
 document.getElementById("player").style.display="flex";
 
-document.getElementById("playerDetails").innerHTML=`
+currentId=i.id;
+currentType=i.first_air_date?"tv":"movie";
+
+document.getElementById("details").innerHTML=`
 <h2>${i.title||i.name}</h2>
-<div class="meta">⭐ ${i.vote_average} • ${(i.release_date||i.first_air_date||"").slice(0,4)}</div>
 <p>${i.overview||""}</p>
-<button onclick="playNow(${i.id},'${i.first_air_date?"tv":"movie"}')">▶ Play</button>
+<button onclick="playNow(${i.id},'${currentType}')">▶ Play</button>
 `;
 
-if(i.first_air_date){
+autoTrailer(i.id,currentType);
+
+if(currentType==="tv"){
 loadTV(i.id);
 }else{
-document.getElementById("season").style.display="none";
 document.getElementById("episodes").innerHTML="";
 }
+
 }
 
-/* PLAY HERO */
-function playHero(id,type){
-playNow(id,type);
-openPlayer({id});
+/* AUTO TRAILER */
+async function autoTrailer(id,type){
+
+const res=await get(`https://api.themoviedb.org/3/${type}/${id}/videos?api_key=${API}`);
+
+const trailer=res.results.find(v=>v.type==="Trailer");
+
+if(!trailer) return;
+
+document.getElementById("frame").src=
+`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1`;
+
 }
 
 /* PLAY */
-function playNow(id,type){
+function playNow(id,type,season=1,episode=1){
 
-saveContinue(id,type);
+currentId=id;
+currentType=type;
+currentSeason=season;
+currentEpisode=episode;
 
-const frame=document.getElementById("frame");
+saveContinue(id,type,season,episode);
 
-frame.src=
-type==="tv"
-?`https://vidsrc.to/embed/tv/${id}/1/1`
-:`https://vidsrc.to/embed/movie/${id}`;
+loadVideo();
 
 }
 
-/* TV LOAD */
+/* VIDEO LOAD */
+function loadVideo(){
+
+const server=document.getElementById("server").value;
+
+let url="";
+
+if(server==1){
+
+url=currentType==="tv"
+?`https://vidsrc.xyz/embed/tv?tmdb=${currentId}&season=${currentSeason}&episode=${currentEpisode}`
+:`https://vidsrc.xyz/embed/movie?tmdb=${currentId}`;
+
+}
+
+if(server==2){
+
+url=currentType==="tv"
+?`https://vidlink.pro/tv/${currentId}/${currentSeason}/${currentEpisode}`
+:`https://vidlink.pro/movie/${currentId}`;
+
+}
+
+if(server==3){
+
+url=currentType==="tv"
+?`https://embed.su/embed/tv/${currentId}/${currentSeason}/${currentEpisode}`
+:`https://embed.su/embed/movie/${currentId}`;
+
+}
+
+document.getElementById("frame").src=url;
+
+/* SHOW SKIP INTRO */
+document.getElementById("skipIntro").style.display="block";
+
+}
+
+/* NEXT EPISODE */
+function nextEpisode(){
+
+currentEpisode++;
+
+loadVideo();
+
+}
+
+/* SKIP INTRO */
+function skipIntro(){
+
+const f=document.getElementById("frame");
+
+try{
+f.contentWindow.postMessage({type:"seek",time:85},"*");
+}catch(e){}
+
+}
+
+/* SUBTITLE TOGGLE */
+let sub=false;
+
+function toggleSub(){
+
+sub=!sub;
+
+const f=document.getElementById("frame");
+
+try{
+f.contentWindow.postMessage({type:"subtitle",enabled:sub},"*");
+}catch(e){}
+
+}
+
+/* TV */
 async function loadTV(id){
 
 const data=await get(`https://api.themoviedb.org/3/tv/${id}?api_key=${API}`);
 
-const season=document.getElementById("season");
-season.style.display="block";
-season.innerHTML="";
+const s=document.getElementById("season");
+s.innerHTML="";
 
-data.seasons.forEach(s=>{
+data.seasons.forEach(se=>{
 const o=document.createElement("option");
-o.value=s.season_number;
-o.text="Season "+s.season_number;
-season.appendChild(o);
+o.value=se.season_number;
+o.text="Season "+se.season_number;
+s.appendChild(o);
 });
 
-season.onchange=()=>loadEpisodes(id,season.value);
+s.onchange=()=>{
+currentSeason=s.value;
+loadEpisodes(id,s.value);
+};
 
-loadEpisodes(id,season.value);
+loadEpisodes(id,s.value);
+
 }
 
 /* EPISODES */
@@ -481,33 +550,27 @@ const data=await get(`https://api.themoviedb.org/3/tv/${id}/season/${season}?api
 const box=document.getElementById("episodes");
 box.innerHTML="";
 
-data.episodes.forEach(e=>{
+data.episodes.forEach(ep=>{
 
 const div=document.createElement("div");
 div.className="episode";
 
-div.onclick=()=>playEpisode(id,season,e.episode_number);
+div.onclick=()=>{
+currentEpisode=ep.episode_number;
+playNow(id,"tv",season,ep.episode_number);
+};
 
 div.innerHTML=`
-<img src="${e.still_path?IMG+e.still_path:""}">
-<div class="episodeInfo">
-<b>Episode ${e.episode_number} — ${e.name}</b>
-<p>${e.overview||""}</p>
+<img src="${ep.still_path?IMG+ep.still_path:""}">
+<div>
+<b>Episode ${ep.episode_number}</b>
+<p>${ep.overview||""}</p>
 </div>
 `;
 
 box.appendChild(div);
 
 });
-}
-
-/* PLAY EP */
-function playEpisode(id,season,ep){
-
-saveContinue(id,"tv",season,ep);
-
-document.getElementById("frame").src=
-`https://vidsrc.to/embed/tv/${id}/${season}/${ep}`;
 
 }
 
@@ -531,15 +594,16 @@ display(data.results,"trending");
 });
 
 /* CONTINUE WATCHING */
-function saveContinue(id,type,season=1,ep=1){
+function saveContinue(id,type,season,episode){
 
-const data=JSON.parse(localStorage.getItem("continue")||"[]");
+const list=JSON.parse(localStorage.getItem("continue")||"[]");
 
-data.unshift({id,type,season,ep});
+list.unshift({id,type,season,episode});
 
-localStorage.setItem("continue",JSON.stringify(data.slice(0,20)));
+localStorage.setItem("continue",JSON.stringify(list.slice(0,20)));
 
 loadContinue();
+
 }
 
 async function loadContinue(){
@@ -556,26 +620,23 @@ const d=await get(`https://api.themoviedb.org/3/${i.type}/${i.id}?api_key=${API}
 const card=document.createElement("div");
 card.className="card";
 
-card.innerHTML=`
-<img src="${IMG+d.poster_path}">
-`;
+card.innerHTML=`<img src="${IMG+d.poster_path}">`;
 
 card.onclick=()=>{
 
 openPlayer(d);
-
-if(i.type==="movie"){
-playNow(i.id,"movie");
-}else{
-playEpisode(i.id,i.season,i.ep);
-}
+playNow(i.id,i.type,i.season,i.episode);
 
 };
 
 row.appendChild(card);
 
 }
+
 }
+
+/* SERVER SWITCH */
+document.getElementById("server").onchange=loadVideo;
 
 /* INIT */
 loadHome();
