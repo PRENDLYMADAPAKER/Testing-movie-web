@@ -353,39 +353,24 @@ hero.innerHTML=`
 <p>${i.overview||""}</p>
 
 <div class="heroButtons">
-<div class="btn play" onclick="playNow(${i.id},'${i.first_air_date?"tv":"movie"}')">▶ Play</div>
-<div class="btn info" onclick='openPlayer(${JSON.stringify(i)})'>More Info</div>
+<div class="btn play" id="heroPlay">▶ Play</div>
+<div class="btn info" id="heroInfo">More Info</div>
 </div>
 </div>
 `;
 
-}
+document.getElementById("heroPlay").onclick=()=>{
+playNow(i.id,i.first_air_date?"tv":"movie")
+};
+
+document.getElementById("heroInfo").onclick=()=>{
+openPlayer(i)
+};
+
+ }
 
 /* DISPLAY */
-function display(list,id){
 
-const row=document.getElementById(id);
-row.innerHTML="";
-
-list.forEach(i=>{
-
-if(!i.poster_path) return;
-
-const card=document.createElement("div");
-card.className="card";
-
-card.innerHTML=`
-<img src="${IMG+i.poster_path}">
-<div class="overlay">${i.title||i.name}</div>
-`;
-
-card.onclick=()=>openPlayer(i);
-
-row.appendChild(card);
-
-});
-
-}
 
 /* PLAYER */
 let currentId=0;
@@ -411,7 +396,30 @@ autoTrailer(i.id,currentType);
 
 if(currentType==="tv"){
 loadTV(i.id);
-}else{
+}elfunction display(list,id){
+
+const row=document.getElementById(id);
+row.innerHTML="";
+
+list.forEach(i=>{
+
+if(!i.poster_path) return;
+
+const card=document.createElement("div");
+card.className="card";
+
+card.innerHTML=`
+<img src="${IMG+i.poster_path}">
+<div class="overlay">${i.title||i.name}</div>
+`;
+
+card.onclick=()=>openPlayer(i);
+
+row.appendChild(card);
+
+});
+
+ }se{
 document.getElementById("episodes").innerHTML="";
 }
 
