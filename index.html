@@ -106,7 +106,8 @@
                 allowfullscreen="true" 
                 webkitallowfullscreen="true" 
                 mozallowfullscreen="true"
-                referrerpolicy="no-referrer">
+                referrerpolicy="no-referrer"
+                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation">
             </iframe>
         </div>
         <div class="info-wrap" style="padding: 20px;">
@@ -248,14 +249,12 @@ function watchFull() {
     const f = document.getElementById('mainFrame');
     const { s, e } = currentEp;
 
-    // Automatic scroll for mobile users
     document.getElementById('playerModal').scrollTo({top: 0, behavior: 'smooth'});
 
     let url = "";
     if (currentServer === 1) {
         url = type === 'tv' ? `https://vidsync.xyz/embed/tv/${id}/${s}/${e}` : `https://vidsync.xyz/embed/movie/${id}`;
     } else if (currentServer === 2) {
-        // Correct Vidsrc link structure for fullscreen compatibility
         url = type === 'tv' 
             ? `https://vidsrc.me/embed/tv?tmdb=${id}&sea=${s}&epi=${e}` 
             : `https://vidsrc.me/embed/movie?tmdb=${id}`;
@@ -263,11 +262,10 @@ function watchFull() {
         url = type === 'tv' ? `https://vidsrc.pro/embed/tv/${id}/${s}/${e}` : `https://vidsrc.pro/embed/movie/${id}`;
     }
 
-    // KILL & RESTART to bypass sandbox locks
     f.src = "about:blank"; 
     setTimeout(() => {
         f.src = url;
-    }, 50);
+    }, 100);
 }
 
 function closeModal() {
