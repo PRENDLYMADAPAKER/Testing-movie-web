@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer-when-downgrade">
-    <title>NZM FLIX</title>
+    <title>NZM FLIX | Elite Edition</title>
     <style>
         :root { 
             --red: #E50914; --bg: #000; 
@@ -23,7 +23,6 @@
         header.scrolled { background: var(--bg); border-bottom: 1px solid #222; }
         .logo { color: var(--red); font-size: 28px; font-weight: 900; cursor: pointer; outline: none; text-decoration: none; }
         
-        /* Critical for Smart TV Remotes */
         .card:focus, .btn-red:focus, .srv-btn:focus, .logo:focus, .search-icon:focus, .ep-card:focus {
             outline: 3px solid white; transform: scale(1.08); z-index: 100; box-shadow: 0 0 25px var(--red);
         }
@@ -49,7 +48,7 @@
         .modal-content { display: flex; flex-direction: column; width: 100%; }
         @media (min-width: 1024px) {
             .modal-content { flex-direction: row-reverse; padding: 80px 5%; gap: 50px; align-items: flex-start; }
-            .video-wrap { width: 60% !important; position: sticky; top: 100px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            .video-wrap { width: 60% !important; position: sticky; top: 100px; border-radius: 12px; overflow: hidden; }
             .info-wrap { flex: 1; }
         }
 
@@ -58,12 +57,10 @@
 
         .btn-red { background: var(--red); color: white; width: 100%; padding: 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 15px; outline: none; }
         
-        /* SERVER SWITCHER */
         .srv-bar { display: flex; gap: 10px; margin: 15px 0; overflow-x: auto; scrollbar-width: none; }
         .srv-btn { background: #222; color: #888; padding: 10px 20px; border-radius: 5px; border: 1px solid #333; cursor: pointer; white-space: nowrap; outline: none; }
         .srv-btn.active { background: var(--red); color: white; border-color: var(--red); }
 
-        /* EPISODES LIST */
         .ep-card { display: flex; gap: 15px; padding: 12px; background: #111; border-radius: 8px; margin-bottom: 10px; cursor: pointer; border: 1px solid transparent; outline: none; }
         .ep-thumb { width: 130px; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; background: #222; }
 
@@ -85,15 +82,18 @@
 
 <main id="home">
     <div id="hero" class="hero"></div>
-    <div class="section" id="lastWatchedSec" style="display:none;"><h3>Last Watched</h3><div class="row" id="last-row"></div></div>
+    <div class="section" id="lastWatchedSec" style="display:none;"><h3>🕒 Last Watched</h3><div class="row" id="last-row"></div></div>
+    
     <div class="section"><h3>🏆 Top Philippines</h3><div class="row" id="ph-row"></div></div>
     <div class="section"><h3>🔥 Trending Now</h3><div class="row" id="trend-row"></div></div>
-    <div class="section"><h3>K-Drama Hits</h3><div class="row" id="kdrama-row"></div></div>
-    <div class="section"><h3>Asian Cinema</h3><div class="row" id="asian-row"></div></div>
-    <div class="section"><h3>Comedy</h3><div class="row" id="comedy-row"></div></div>
-    <div class="section"><h3>Action & Thriller</h3><div class="row" id="action-row"></div></div>
-    <div class="section"><h3>Anime Universe</h3><div class="row" id="anime-row"></div></div>
-    <div class="section"><h3>Kids & Cartoons</h3><div class="row" id="kids-row"></div></div>
+    <div class="section"><h3>🎎 K-Drama</h3><div class="row" id="kdrama-row"></div></div>
+    <div class="section"><h3>🏮 Asian</h3><div class="row" id="asian-row"></div></div>
+    <div class="section"><h3>😂 Comedy</h3><div class="row" id="comedy-row"></div></div>
+    <div class="section"><h3>💥 Action</h3><div class="row" id="action-row"></div></div>
+    <div class="section"><h3>🚀 Sci-Fi</h3><div class="row" id="scifi-row"></div></div>
+    <div class="section"><h3>🎌 Anime</h3><div class="row" id="anime-row"></div></div>
+    <div class="section"><h3>🎈 Kids</h3><div class="row" id="kids-row"></div></div>
+    <div class="section"><h3>👨‍👩‍👧 Family</h3><div class="row" id="family-row"></div></div>
 </main>
 
 <div id="searchView">
@@ -127,10 +127,8 @@ let active = null, srv = 1, curEp = {s:1, e:1};
 
 async function api(p) { return (await fetch(`https://api.themoviedb.org/3${p}${p.includes('?')?'&':'?'}api_key=${KEY}`)).json(); }
 
-// BACK BUTTON HANDLING
 window.onpopstate = () => { closeM(); closeSearch(); };
 
-// PERSISTENCE LOGIC
 function saveWatched(i) {
     let list = JSON.parse(localStorage.getItem('nzm_history') || '[]');
     list = list.filter(x => x.id !== i.id);
@@ -149,19 +147,23 @@ function renderHistory() {
     }
 }
 
-// APP START
 async function init() {
     renderHistory();
     const tr = await api('/trending/all/week');
     setHero(tr.results[0]);
+    
+    // FETCHING THE NEW CATEGORIES
     fill('ph-row', (await api('/trending/all/day?region=PH')).results);
     fill('trend-row', tr.results);
     fill('kdrama-row', (await api('/discover/tv?with_original_language=ko&sort_by=popularity.desc')).results);
-    fill('asian-row', (await api('/discover/tv?with_original_language=zh|th')).results);
-    fill('comedy-row', (await api('/discover/movie?with_genres=35')).results);
-    fill('action-row', (await api('/discover/movie?with_genres=28')).results);
-    fill('anime-row', (await api('/discover/tv?with_genres=16')).results);
-    fill('kids-row', (await api('/discover/movie?with_genres=16&without_genres=10751')).results);
+    fill('asian-row', (await api('/discover/tv?with_original_language=zh|ja|th&sort_by=popularity.desc')).results);
+    fill('comedy-row', (await api('/discover/movie?with_genres=35&sort_by=popularity.desc')).results);
+    fill('action-row', (await api('/discover/movie?with_genres=28&sort_by=popularity.desc')).results);
+    fill('scifi-row', (await api('/discover/movie?with_genres=878&sort_by=popularity.desc')).results);
+    fill('anime-row', (await api('/discover/tv?with_genres=16&with_original_language=ja')).results);
+    fill('kids-row', (await api('/discover/tv?with_genres=10762')).results);
+    fill('family-row', (await api('/discover/movie?with_genres=10751')).results);
+    
     document.getElementById('loader').style.display = "none";
 }
 
@@ -185,14 +187,13 @@ function setHero(i) {
     </div>`;
 }
 
-// MODAL & FIXED TRAILER ENGINE
 async function openM(i) {
     active = i; curEp = {s:1, e:1};
     history.pushState({modal: true}, "");
     document.getElementById('pModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
 
-    // NEW TRAILER SYSTEM (YouTube-Direct)
+    // OFFICIAL YOUTUBE TRAILER SYSTEM
     const type = i.first_air_date ? 'tv' : 'movie';
     const vData = await api(`/${type}/${i.id}/videos`);
     const trailer = vData.results.find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')) || vData.results[0];
@@ -204,7 +205,7 @@ async function openM(i) {
     document.getElementById('meta').innerHTML = `
         <h2 style="margin:0;">${i.title||i.name}</h2>
         <p style="color:#888; margin:10px 0; font-size:14px; line-height:1.5;">${i.overview}</p>
-        <button class="btn-red" tabindex="0" onclick="watch(true)">Watch Now</button>
+        <button class="btn-red" tabindex="0" onclick="watch(true)">🚀 START MOVIE / SHOW</button>
     `;
 
     if(i.first_air_date) {
@@ -257,7 +258,6 @@ async function watch(goFull = false) {
     }
 }
 
-// SEARCH ENGINE
 function toggleSearch() {
     const s = document.getElementById('searchView');
     if(s.style.display !== 'block') {
@@ -285,5 +285,4 @@ window.onscroll = () => document.getElementById('nav').classList.toggle('scrolle
 init();
 </script>
 </body>
-    </html>
-    
+</html>
