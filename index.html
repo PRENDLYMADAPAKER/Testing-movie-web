@@ -21,7 +21,6 @@
         header.scrolled { background: var(--bg); border-bottom: 1px solid #222; }
         .logo { color: var(--red); font-size: 28px; font-weight: 900; cursor: pointer; outline: none; }
 
-        /* Universal Focus Style for TV Remotes */
         [tabindex="0"]:focus, .search-bar:focus {
             outline: 4px solid white !important;
             transform: scale(1.05);
@@ -129,6 +128,18 @@ async function api(p) { return (await fetch(`https://api.themoviedb.org/3${p}${p
 
 function isMobile() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent); }
 
+// --- SMART BACK BUTTON LOGIC ---
+window.onpopstate = function(event) {
+    // If the search view is open, close it
+    if (document.getElementById('searchView').style.display === 'block') {
+        toggleSearch(false); // Close without pushing a new state
+    } 
+    // If the modal (player) is open, close it
+    else if (document.getElementById('pModal').style.display === 'block') {
+        closeM(false); // Close without pushing a new state
+    }
+};
+
 // --- TV NAVIGATION LOGIC ---
 document.addEventListener('keydown', (e) => {
     const focusables = Array.from(document.querySelectorAll('[tabindex="0"], .search-bar')).filter(el => el.offsetParent !== null);
@@ -193,14 +204,18 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
     }, 500);
 });
 
-function toggleSearch(){
+function toggleSearch(pushState = true){
     const s=document.getElementById('searchView');
     const isOpening = s.style.display !== 'block';
-    s.style.display = isOpening ? 'block' : 'none';
-    document.getElementById('home').style.display = isOpening ? 'none' : 'block';
-    if(isOpening) {
+    
+    if (isOpening) {
+        s.style.display = 'block';
+        document.getElementById('home').style.display = 'none';
         document.getElementById('searchInput').focus();
+        if(pushState) history.pushState({view: 'search'}, '');
     } else {
+        s.style.display = 'none';
+        document.getElementById('home').style.display = 'block';
         document.getElementById('searchInput').value = "";
         document.getElementById('searchRes').innerHTML = "";
     }
@@ -223,6 +238,7 @@ async function openM(i){
 
     document.getElementById('pModal').style.display='block';
     document.body.style.overflow='hidden';
+    history.pushState({view: 'modal'}, ''); // Add to history
 
     const type=i.first_air_date?'tv':'movie';
     const vData=await api(`/${type}/${i.id}/videos`);
@@ -315,10 +331,11 @@ function setSrv(n,b){
     if(!document.getElementById('frame').src.includes('youtube')) watch(true);
 }
 
-function closeM(){
+function closeM(shouldGoBack = true){
     document.getElementById('pModal').style.display='none';
     document.getElementById('frame').src='';
     document.body.style.overflow='auto';
+    if(shouldGoBack && history.state?.view === 'modal') history.back();
 }
 
 function clearHist(){ localStorage.removeItem('nzm_history'); location.reload(); }
