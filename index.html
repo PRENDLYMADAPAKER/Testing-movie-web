@@ -22,7 +22,7 @@
         .logo { color: var(--red); font-size: 28px; font-weight: 900; cursor: pointer; outline: none; }
 
         /* Universal Focus Style for TV Remotes */
-        [tabindex="0"]:focus {
+        [tabindex="0"]:focus, .search-bar:focus {
             outline: 4px solid white !important;
             transform: scale(1.05);
             z-index: 1000;
@@ -43,11 +43,9 @@
         .card img { width: 100%; height: var(--card-h); object-fit: cover; border-radius: 6px; background: #111; pointer-events: none; }
         .card-name { font-size: 13px; margin-top: 10px; text-align: center; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* MODAL OPTIMIZATION */
         .modal { position: fixed; inset: 0; background: #000; z-index: 2500; display: none; }
         .modal-content { display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
 
-        /* TV/Desktop View: Side-by-Side */
         @media (min-width: 1024px) {
             .modal-content { flex-direction: row; padding: 60px 5%; gap: 40px; overflow: hidden; }
             .video-side { width: 45%; }
@@ -94,8 +92,8 @@
 </main>
 
 <div id="searchView">
-    <input type="text" id="searchInput" class="search-bar" placeholder="Search...">
-    <div class="row" style="flex-wrap:wrap; justify-content:center;" id="searchRes"></div>
+    <input type="text" id="searchInput" class="search-bar" placeholder="Search movies or shows...">
+    <div class="row" style="display: grid; grid-template-columns: repeat(auto-fill, var(--card-w)); justify-content: center; gap: 20px;" id="searchRes"></div>
 </div>
 
 <div class="modal" id="pModal">
@@ -125,7 +123,7 @@
 
 <script>
 const KEY = "2f7637ba9b3253a84483afa03480473a", IMG = "https://image.tmdb.org/t/p/original", POSTER = "https://image.tmdb.org/t/p/w500";
-let active = null, srv = 1, curEp = {s:1,e:1};
+let active = null, srv = 1, curEp = {s:1,e:1}, searchTimer;
 
 async function api(p) { return (await fetch(`https://api.themoviedb.org/3${p}${p.includes('?')?'&':'?'}api_key=${KEY}`)).json(); }
 
@@ -133,15 +131,20 @@ function isMobile() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgen
 
 // --- TV NAVIGATION LOGIC ---
 document.addEventListener('keydown', (e) => {
-    const focusables = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
+    const focusables = Array.from(document.querySelectorAll('[tabindex="0"], .search-bar')).filter(el => el.offsetParent !== null);
     let index = focusables.indexOf(document.activeElement);
-    if (e.key === "Enter") { document.activeElement.click(); return; }
     
-    // Simple spatial navigation for TV remotes
+    if (e.key === "Enter") { 
+        if(document.activeElement.tagName !== 'INPUT') {
+            document.activeElement.click(); 
+            return;
+        }
+    }
+    
     if (e.key === "ArrowRight") index++;
     if (e.key === "ArrowLeft") index--;
-    if (e.key === "ArrowDown") index += 5; // Rough estimate for grid jump
-    if (e.key === "ArrowUp") index -= 5;
+    if (e.key === "ArrowDown") index += (document.getElementById('searchView').style.display === 'block') ? 3 : 5;
+    if (e.key === "ArrowUp") index -= (document.getElementById('searchView').style.display === 'block') ? 3 : 5;
     
     if (index >= 0 && index < focusables.length) {
         focusables[index].focus();
@@ -160,13 +163,47 @@ async function init(){
     document.getElementById('loader').style.display="none";
 }
 
-function fill(id,data){ const r=document.getElementById(id); if(r) data.forEach(i=>fillItem(r,i)); }
-function fillItem(r,i){ 
+function fill(id,data){ 
+    const r=document.getElementById(id); 
+    if(r) {
+        r.innerHTML = '';
+        data.forEach(i=>fillItem(r,i)); 
+    }
+}
+
+function fillItem(r,i){ 
     if(!i.poster_path) return;
     const c=document.createElement('div'); c.className='card'; c.tabIndex=0;
     c.innerHTML=`<img src="${POSTER+i.poster_path}"><div class="card-name">${i.title||i.name}</div>`;
     c.onclick=()=>{ curEp={s:1,e:1}; openM(i); };
     r.appendChild(c);
+}
+
+// --- SEARCH LOGIC ---
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    const query = e.target.value;
+    if(query.length < 2) {
+        document.getElementById('searchRes').innerHTML = "";
+        return;
+    }
+    searchTimer = setTimeout(async () => {
+        const data = await api(`/search/multi?query=${encodeURIComponent(query)}`);
+        fill('searchRes', data.results.filter(x => x.media_type !== 'person'));
+    }, 500);
+});
+
+function toggleSearch(){
+    const s=document.getElementById('searchView');
+    const isOpening = s.style.display !== 'block';
+    s.style.display = isOpening ? 'block' : 'none';
+    document.getElementById('home').style.display = isOpening ? 'none' : 'block';
+    if(isOpening) {
+        document.getElementById('searchInput').focus();
+    } else {
+        document.getElementById('searchInput').value = "";
+        document.getElementById('searchRes').innerHTML = "";
+    }
 }
 
 function setHero(i){
@@ -207,7 +244,6 @@ async function openM(i){
         loadEps();
     } else document.getElementById('tvUI').style.display='none';
 
-    // TV Priority: Focus the Play button immediately
     setTimeout(() => document.getElementById('watchNowBtn').focus(), 300);
 }
 
@@ -239,7 +275,6 @@ async function watch(goFull=false){
 
     document.getElementById('frame').src = url;
 
-    // Mobile Auto-Landscape Logic
     if(goFull && isMobile()){
         const el = document.getElementById('vidContainer');
         try {
@@ -284,12 +319,6 @@ function closeM(){
     document.getElementById('pModal').style.display='none';
     document.getElementById('frame').src='';
     document.body.style.overflow='auto';
-}
-
-function toggleSearch(){
-    const s=document.getElementById('searchView');
-    s.style.display = (s.style.display === 'block') ? 'none' : 'block';
-    if(s.style.display === 'block') document.getElementById('searchInput').focus();
 }
 
 function clearHist(){ localStorage.removeItem('nzm_history'); location.reload(); }
