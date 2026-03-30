@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer-when-downgrade">
-    <title>NZM FLIX | Premium Edition</title>
+    <title>NZM FLIX | Elite Edition</title>
     <style>
         :root { 
             --red: #E50914; --bg: #000; 
@@ -27,9 +27,9 @@
             outline: 3px solid white !important;
             transform: scale(1.05);
             z-index: 10;
+            box-shadow: 0 0 15px var(--red);
         }
 
-        /* UI Elements */
         .hero { height: 70vh; background: center top/cover; position: relative; display: flex; align-items: flex-end; padding: 0 5% 50px; }
         .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 10%, transparent 90%); }
         .hero-body { position: relative; z-index: 5; max-width: 650px; }
@@ -78,7 +78,7 @@
 
 <header>
     <div class="logo" tabindex="0" onclick="location.reload()">NZM FLIX</div>
-    <div tabindex="0" onclick="toggleSearch()" style="font-size: 22px; cursor: pointer;">🔍</div>
+    <div tabindex="0" onclick="toggleSearch()" style="font-size: 22px; cursor: pointer; padding:10px;">🔍</div>
 </header>
 
 <main id="home">
@@ -110,7 +110,7 @@
     <div class="modal-content">
         <div class="video-side">
             <div class="video-wrap" id="vidContainer" tabindex="0">
-                <iframe id="frame" allowfullscreen></iframe>
+                <iframe id="frame" allowfullscreen allow="autoplay"></iframe>
             </div>
             <div id="meta-main" style="padding:15px 0;"></div>
         </div>
@@ -120,6 +120,7 @@
                 <button class="srv-btn active" tabindex="0" onclick="setSrv(1, this)">Server 1</button>
                 <button class="srv-btn" tabindex="0" onclick="setSrv(2, this)">Server 2</button>
                 <button class="srv-btn" tabindex="0" onclick="setSrv(3, this)">Server 3</button>
+                <button class="srv-btn" tabindex="0" onclick="setSrv(4, this)">Server 4</button>
             </div>
             <div id="tvUI" style="display:none; margin-top:15px;">
                 <select id="seasonSelect" tabindex="0" onchange="loadEps()" style="width:100%; padding:12px; background:#222; color:white; border:none; border-radius:5px;"></select>
@@ -143,13 +144,9 @@ async function api(p) {
     } catch(e) { return {results: []}; }
 }
 
-// --- BACK BUTTON LOGIC ---
-window.onpopstate = function() {
-    if (document.getElementById('searchView').style.display === 'block') {
-        toggleSearch(false);
-    } else if (document.getElementById('pModal').style.display === 'block') {
-        closeM(false);
-    }
+window.onpopstate = () => {
+    if (document.getElementById('searchView').style.display === 'block') toggleSearch(false);
+    else if (document.getElementById('pModal').style.display === 'block') closeM(false);
 };
 
 async function init(){
@@ -157,7 +154,6 @@ async function init(){
     const tr = await api('/trending/all/week');
     if(tr.results?.length) setHero(tr.results[0]);
 
-    // Categories Mapping
     fill('ph-row', (await api('/discover/movie?region=PH&sort_by=popularity.desc')).results);
     fill('trend-row', tr.results);
     fill('kdrama-row', (await api('/discover/tv?with_original_language=ko')).results);
@@ -166,7 +162,7 @@ async function init(){
     fill('scifi-row', (await api('/discover/movie?with_genres=878')).results);
     fill('family-row', (await api('/discover/movie?with_genres=10751')).results);
     fill('kids-row', (await api('/discover/tv?with_genres=10762')).results);
-    fill('anime-row', (await api('/discover/tv?with_genres=16&with_keywords=210024|222243')).results);
+    fill('anime-row', (await api('/discover/tv?with_genres=16&with_keywords=210024')).results);
     
     document.getElementById('loader').style.display="none";
 }
@@ -186,35 +182,21 @@ function fill(id, data){
     }
 }
 
-// --- SEARCH ---
 document.getElementById('searchInput').addEventListener('input', (e) => {
     clearTimeout(searchTimer);
     const q = e.target.value.trim();
     if(q.length < 2) return;
     searchTimer = setTimeout(async () => {
         const d = await api(`/search/multi?query=${encodeURIComponent(q)}`);
-        const filtered = (d.results || []).filter(x => x.poster_path);
-        const r = document.getElementById('searchRes');
-        r.innerHTML = '';
-        filtered.forEach(i => {
-            const c = document.createElement('div');
-            c.className = 'card'; c.tabIndex = 0;
-            c.innerHTML = `<img src="${POSTER+i.poster_path}"><div class="card-name">${i.title||i.name}</div>`;
-            c.onclick = () => openM(i);
-            r.appendChild(c);
-        });
+        fill('searchRes', (d.results || []).filter(x => x.poster_path));
     }, 600);
 });
 
 function toggleSearch(push = true){
-    const s = document.getElementById('searchView');
-    const open = s.style.display !== 'block';
+    const s = document.getElementById('searchView'), open = s.style.display !== 'block';
     s.style.display = open ? 'block' : 'none';
     document.getElementById('home').style.display = open ? 'none' : 'block';
-    if(open) {
-        document.getElementById('searchInput').focus();
-        if(push) history.pushState({v:'s'}, '');
-    }
+    if(open) { document.getElementById('searchInput').focus(); if(push) history.pushState({v:'s'}, ''); }
 }
 
 function setHero(i){
@@ -231,25 +213,20 @@ async function openM(i){
     const hist = JSON.parse(localStorage.getItem('nzm_history') || '[]');
     const rec = hist.find(x => x.id === i.id);
     if(rec) curEp = {s: rec.lastS || 1, e: rec.lastE || 1};
-
     document.getElementById('pModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
     if(history.state?.v !== 'm') history.pushState({v:'m'}, '');
-
     const type = i.first_air_date ? 'tv' : 'movie';
     document.getElementById('meta-main').innerHTML = `<h2>${i.title||i.name}</h2>
         <button id="playBtn" class="btn-red" onclick="watch(true)">🚀 PLAY ${type==='tv'?'S'+curEp.s+':E'+curEp.e:'MOVIE'}</button>`;
     document.getElementById('meta-desc').innerText = i.overview;
-
     if(type === 'tv'){
         document.getElementById('tvUI').style.display = 'block';
         const d = await api(`/tv/${i.id}`);
-        document.getElementById('seasonSelect').innerHTML = (d.seasons||[])
-            .filter(s => s.season_number > 0)
+        document.getElementById('seasonSelect').innerHTML = (d.seasons||[]).filter(s => s.season_number > 0)
             .map(s => `<option value="${s.season_number}" ${s.season_number==curEp.s?'selected':''}>Season ${s.season_number}</option>`).join('');
         loadEps();
     } else document.getElementById('tvUI').style.display = 'none';
-    
     setTimeout(() => document.getElementById('playBtn').focus(), 300);
 }
 
@@ -266,15 +243,16 @@ async function loadEps(){
 
 function playEp(s, e){ curEp={s, e}; watch(true); }
 
-async function watch(full = false){
+function watch(full = false){
     saveWatched(active, curEp.s, curEp.e);
-    const type = active.first_air_date ? 'tv' : 'movie';
-    const srvs = [
-        `https://vidsync.xyz/embed/${type}/${active.id}${type==='tv'?'/'+curEp.s+'/'+curEp.e:''}`,
-        `https://vidsrc.cc/v2/embed/${type}/${active.id}${type==='tv'?'/'+curEp.s+'/'+curEp.e:''}`,
-        `https://vidsrc.pro/embed/${type}/${active.id}${type==='tv'?'/'+curEp.s+'/'+curEp.e:''}`
+    const type = active.first_air_date ? 'tv' : 'movie', id = active.id, {s,e} = curEp;
+    const urls = [
+        `https://vidsync.xyz/embed/${type}/${id}${type==='tv'?'/'+s+'/'+e:''}`,
+        `https://vidsrc.cc/v2/embed/${type}/${id}${type==='tv'?'/'+s+'/'+e:''}`,
+        `https://vidsrc.pro/embed/${type}/${id}${type==='tv'?'/'+s+'/'+e:''}`,
+        `https://multiembed.mov/?video_id=${id}&tmdb=1${type==='tv'?'&s='+s+'&e='+e:''}`
     ];
-    document.getElementById('frame').src = srvs[srv-1];
+    document.getElementById('frame').src = urls[srv-1];
 }
 
 function saveWatched(i, s, e) {
@@ -304,7 +282,7 @@ function setSrv(n, b){
     srv = n;
     document.querySelectorAll('.srv-btn').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
-    watch(true);
+    if(document.getElementById('frame').src) watch(true);
 }
 
 function closeM(back = true){
@@ -314,7 +292,7 @@ function closeM(back = true){
     if(back && history.state?.v === 'm') history.back();
 }
 
-function clearHist(){ localStorage.removeItem('nzm_history'); renderHistory(); }
+function clearHist(){ if(confirm("Clear history?")){ localStorage.removeItem('nzm_history'); renderHistory(); } }
 
 init();
 </script>
