@@ -22,7 +22,7 @@
         .logo { color: var(--red); font-size: 28px; font-weight: 900; cursor: pointer; outline: none; }
 
         .card:focus, .btn-red:focus, .srv-btn:focus, .logo:focus, .search-icon:focus, .ep-card:focus, select:focus {
-            outline: 4px solid white; transform: scale(1.08); z-index: 100; box-shadow: 0 0 25px var(--red);
+            outline: 4px solid white; transform: scale(1.05); z-index: 100; box-shadow: 0 0 25px var(--red);
         }
 
         .hero { height: 75vh; background: center top/cover; position: relative; display: flex; align-items: flex-end; padding: 0 5% 60px; }
@@ -40,13 +40,14 @@
         .card-name { font-size: 13px; margin-top: 10px; text-align: center; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .card-status { position: absolute; top: 10px; right: 10px; background: var(--red); font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
 
+        /* MODAL LAYOUT - TV OPTIMIZED */
         .modal { position: fixed; inset: 0; background: #000; z-index: 2500; display: none; overflow-y: auto; }
         .modal-content { display: flex; flex-direction: column; width: 100%; }
         
-        @media (min-width: 1024px) {
-            .modal-content { flex-direction: row-reverse; padding: 60px 5%; gap: 40px; align-items: flex-start; }
-            .video-wrap { width: 55% !important; position: sticky; top: 80px; border-radius: 12px; overflow: hidden; }
-            .info-wrap { flex: 1; max-height: 80vh; overflow-y: auto; }
+        @media (min-width: 900px) {
+            .modal-content { flex-direction: row; padding: 60px 5%; gap: 30px; align-items: flex-start; }
+            .info-wrap { flex: 1.2; order: 1; } /* Text and Episodes on Left */
+            .video-wrap { flex: 0.8; order: 2; position: sticky; top: 80px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); } /* Video on Right */
         }
 
         .video-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; z-index: 100; }
@@ -64,9 +65,6 @@
 
         #searchView { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: none; padding: 110px 5% 50px; overflow-y: auto; }
         .search-bar { width: 100%; max-width: 600px; display: block; margin: 0 auto 40px; padding: 15px 25px; background: #111; border: 2px solid #333; color: white; border-radius: 50px; font-size: 18px; outline: none; }
-
-        .row:focus-within { scroll-behavior: smooth; }
-        .row .card { scroll-snap-align: start; }
     </style>
 </head>
 <body>
@@ -80,22 +78,17 @@
 
 <main id="home">
     <div id="hero" class="hero"></div>
-    
     <div class="section" id="lastWatchedSec" style="display:none;">
-        <h3>Last Watched <small onclick="clearHist()" style="font-size:12px; color:var(--red); cursor:pointer; margin-left:10px;">[Clear All]</small></h3>
+        <h3>Last Watched <small onclick="clearHist()" style="font-size:12px; color:var(--red); cursor:pointer;">[Clear]</small></h3>
         <div class="row" id="last-row"></div>
     </div>
-    
     <div class="section"><h3>Top Philippines</h3><div class="row" id="ph-row"></div></div>
     <div class="section"><h3>Trending Now</h3><div class="row" id="trend-row"></div></div>
     <div class="section"><h3>K-Drama</h3><div class="row" id="kdrama-row"></div></div>
     <div class="section"><h3>Asian</h3><div class="row" id="asian-row"></div></div>
-    <div class="section"><h3>Comedy</h3><div class="row" id="comedy-row"></div></div>
     <div class="section"><h3>Action</h3><div class="row" id="action-row"></div></div>
     <div class="section"><h3>Sci-Fi</h3><div class="row" id="scifi-row"></div></div>
     <div class="section"><h3>Anime</h3><div class="row" id="anime-row"></div></div>
-    <div class="section"><h3>Kids</h3><div class="row" id="kids-row"></div></div>
-    <div class="section"><h3>Family</h3><div class="row" id="family-row"></div></div>
 </main>
 
 <div id="searchView">
@@ -106,8 +99,7 @@
 <div class="modal" id="pModal">
     <button class="close-btn" tabindex="0" onclick="closeM()">✕</button>
     <div class="modal-content">
-        <div class="video-wrap" id="vidContainer" tabindex="0"><iframe id="frame" allowfullscreen allow="autoplay"></iframe></div>
-        <div class="info-wrap" style="padding: 20px;">
+        <div class="info-wrap">
             <div id="meta"></div>
             <div class="srv-bar">
                 <button class="srv-btn active" tabindex="0" onclick="setSrv(1, this)">Server 1</button>
@@ -118,27 +110,44 @@
             <div id="tvUI" style="display:none; margin-top:20px;">
                 <select id="seasonSelect" tabindex="0" onchange="loadEps()" style="width:100%; padding:15px; background:#222; color:white; border:none; border-radius:8px;"></select>
                 <div id="epList" style="margin-top:20px;"></div>
-                <button id="skipIntroBtn" class="btn-red" style="margin-top:10px; display:none;" onclick="skipIntro()">⏩ Skip Intro</button>
             </div>
+        </div>
+        <div class="video-wrap" id="vidContainer" tabindex="0">
+            <iframe id="frame" allowfullscreen allow="autoplay"></iframe>
         </div>
     </div>
 </div>
 
 <script>
-const KEY = "2f7637ba9b3253a84483afa03480473a", IMG = "https://image.tmdb.org/t/p/original", POSTER = "https://image.tmdb.org/t/p/w500";
+const KEY = "2f7637ba9b3253a84483afa03480473a", IMG = "https://image.tmdb.org/t/p/original", POSTER = "https://image.tmdb.org/p/w500";
 let active = null, srv = 1, curEp = {s:1,e:1};
 
 async function api(p) { return (await fetch(`https://api.themoviedb.org/3${p}${p.includes('?')?'&':'?'}api_key=${KEY}`)).json(); }
 
-function saveWatched(i, s = 1, e = 1) {
+// --- MOBILE FULLSCREEN LANDSCAPE ---
+async function goFullscreenLandscape() {
+    const el = document.getElementById('vidContainer');
     try {
-        let list = JSON.parse(localStorage.getItem('nzm_history') || '[]');
-        list = list.filter(x => x.id !== i.id);
-        i.lastS = s; i.lastE = e; i.timestamp = Date.now();
-        list.unshift(i);
-        localStorage.setItem('nzm_history', JSON.stringify(list.slice(0, 20)));
-        renderHistory();
-    } catch(err){ console.error(err); }
+        if (el.requestFullscreen) await el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape').catch(e => console.log("Orientation lock skipped"));
+        }
+    } catch (e) { console.log("FS error:", e); }
+}
+
+function exitFullscreen() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+}
+
+function saveWatched(i, s = 1, e = 1) {
+    let list = JSON.parse(localStorage.getItem('nzm_history') || '[]');
+    list = list.filter(x => x.id !== i.id);
+    i.lastS = s; i.lastE = e;
+    list.unshift(i);
+    localStorage.setItem('nzm_history', JSON.stringify(list.slice(0, 20)));
+    renderHistory();
 }
 
 function renderHistory() {
@@ -149,75 +158,11 @@ function renderHistory() {
         row.innerHTML = '';
         list.forEach(i => {
             const c = document.createElement('div'); c.className = 'card'; c.tabIndex = 0;
-            const label = i.first_air_date ? `S${i.lastS}:E${i.lastE}` : 'Movie';
-            c.innerHTML = `<img src="${POSTER+i.poster_path}"><div class="card-status">${label}</div><div class="card-name">${i.title||i.name}</div>`;
+            c.innerHTML = `<img src="${POSTER+i.poster_path}"><div class="card-status">${i.first_air_date ? 'S'+i.lastS : 'Movie'}</div><div class="card-name">${i.title||i.name}</div>`;
             c.onclick = () => { curEp = {s:i.lastS||1,e:i.lastE||1}; openM(i); };
             row.appendChild(c);
         });
-    } else document.getElementById('lastWatchedSec').style.display='none';
-}
-
-function clearHist(){ if(confirm("Clear history?")){ localStorage.removeItem('nzm_history'); renderHistory(); } }
-
-// Improved TV D-Pad Engine
-document.addEventListener('keydown', (e)=>{
-    const focusables = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
-    if(focusables.length === 0) return;
-    const current = document.activeElement;
-    const index = focusables.indexOf(current);
-    let next = null;
-
-    if(e.key === "ArrowRight") next = focusables[index + 1];
-    if(e.key === "ArrowLeft") next = focusables[index - 1];
-    if(e.key === "ArrowDown") {
-        const curRect = current.getBoundingClientRect();
-        next = focusables.find((el, i) => i > index && el.getBoundingClientRect().top > curRect.top + 20);
     }
-    if(e.key === "ArrowUp") {
-        const curRect = current.getBoundingClientRect();
-        const prevs = focusables.filter((el, i) => i < index && el.getBoundingClientRect().top < curRect.top - 20);
-        next = prevs[prevs.length - 1];
-    }
-
-    if(next) { e.preventDefault(); next.focus(); next.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" }); }
-    if(e.key === "Enter") { e.preventDefault(); current.click(); }
-});
-
-async function init(){
-    renderHistory();
-    const tr = await api('/trending/all/week');
-    setHero(tr.results[0]);
-    fill('ph-row', (await api('/trending/all/day?region=PH')).results);
-    fill('trend-row', tr.results);
-    fill('kdrama-row', (await api('/discover/tv?with_original_language=ko&sort_by=popularity.desc')).results);
-    fill('asian-row', (await api('/discover/tv?with_original_language=zh|ja|th&sort_by=popularity.desc')).results);
-    fill('comedy-row', (await api('/discover/movie?with_genres=35&sort_by=popularity.desc')).results);
-    fill('action-row', (await api('/discover/movie?with_genres=28&sort_by=popularity.desc')).results);
-    fill('scifi-row', (await api('/discover/movie?with_genres=878&sort_by=popularity.desc')).results);
-    fill('anime-row', (await api('/discover/tv?with_genres=16&with_original_language=ja')).results);
-    fill('kids-row', (await api('/discover/tv?with_genres=10762')).results);
-    fill('family-row', (await api('/discover/movie?with_genres=10751')).results);
-    document.getElementById('loader').style.display="none";
-    setTimeout(() => document.querySelector('.logo').focus(), 500);
-}
-
-function fill(id,data){ const r=document.getElementById(id); if(r) data.forEach(i=>fillItem(r,i)); }
-function fillItem(r,i){ 
-    if(!i.poster_path) return;
-    const c=document.createElement('div'); c.className='card'; c.tabIndex=0;
-    c.innerHTML=`<img src="${POSTER+i.poster_path}"><div class="card-name">${i.title||i.name}</div>`;
-    c.onclick=()=>{ curEp={s:1,e:1}; openM(i); };
-    r.appendChild(c);
-}
-
-function setHero(i){
-    const h=document.getElementById('hero');
-    h.style.backgroundImage=`url(${IMG+(i.backdrop_path||i.poster_path)})`;
-    h.innerHTML=`<div class="hero-overlay"></div><div class="hero-body">
-        <h1>${i.title||i.name}</h1>
-        <p style="color:#ccc;margin:15px 0;line-height:1.4;">${i.overview.slice(0,140)}...</p>
-        <button class="btn-red" style="width:auto;padding:12px 40px;" tabindex="0" onclick='openM(${JSON.stringify(i).replace(/'/g,"")})'>WATCH NOW</button>
-    </div>`;
 }
 
 async function openM(i){
@@ -233,13 +178,11 @@ async function openM(i){
     const vData=await api(`/${type}/${i.id}/videos`);
     const trailer=vData.results.find(v=>v.site==='YouTube'&&(v.type==='Trailer'||v.type==='Teaser'))||vData.results[0];
 
-    const frame=document.getElementById('frame');
-    if(trailer) frame.src=`https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`;
+    document.getElementById('frame').src = trailer ? `https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0` : "";
     
-    const btnLabel=type==='tv'?`RESUME S${curEp.s}:E${curEp.e}`:`PLAY MOVIE`;
-    document.getElementById('meta').innerHTML=`<h2>${i.title||i.name}</h2>
-        <p style="color:#888;margin:10px 0;font-size:14px;">${i.overview}</p>
-        <button id="playBtn" class="btn-red" tabindex="0" onclick="watch()">🚀 ${btnLabel}</button>`;
+    document.getElementById('meta').innerHTML=`<h2 style="color:var(--red);">${i.title||i.name}</h2>
+        <p style="color:#aaa; font-size:14px; margin-bottom:20px;">${i.overview}</p>
+        <button id="playBtn" class="btn-red" tabindex="0" onclick="watch()">🚀 PLAY ${type==='tv'?'S'+curEp.s+':E'+curEp.e:'MOVIE'}</button>`;
 
     if(i.first_air_date){
         document.getElementById('tvUI').style.display='block';
@@ -249,14 +192,13 @@ async function openM(i){
         loadEps();
     } else document.getElementById('tvUI').style.display='none';
     
-    setTimeout(() => document.getElementById('playBtn').focus(), 300);
+    document.getElementById('playBtn').focus();
 }
 
 async function loadEps(){
     const s=document.getElementById('seasonSelect').value;
     const d=await api(`/tv/${active.id}/season/${s}`);
-    const epList=document.getElementById('epList');
-    epList.innerHTML=d.episodes.map(e=>`
+    document.getElementById('epList').innerHTML=d.episodes.map(e=>`
         <div class="ep-card ${e.episode_number==curEp.e && s==curEp.s?'playing':''}" tabindex="0" onclick="playEp(${s},${e.episode_number})">
             <img class="ep-thumb" src="${e.still_path?POSTER+e.still_path:''}">
             <div style="flex:1"><b>${e.episode_number}. ${e.name}</b></div>
@@ -279,31 +221,75 @@ function watch(){
     else url = `https://vidsrc.pro/embed/${type}/${id}${type==='tv'?`/${s}/${e}`:''}`;
 
     document.getElementById('frame').src = url;
-    document.getElementById('vidContainer').focus();
+    
+    // Auto Fullscreen if mobile
+    if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        goFullscreenLandscape();
+    } else {
+        document.getElementById('vidContainer').focus();
+    }
 }
 
 function setSrv(n,b){
     srv=n;
     document.querySelectorAll('.srv-btn').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
-    if(document.getElementById('frame').src) watch();
+    if(!document.getElementById('frame').src.includes('youtube')) watch();
+}
+
+async function init(){
+    renderHistory();
+    const tr = await api('/trending/all/week');
+    setHero(tr.results[0]);
+    fill('ph-row', (await api('/trending/all/day?region=PH')).results);
+    fill('trend-row', tr.results);
+    fill('kdrama-row', (await api('/discover/tv?with_original_language=ko')).results);
+    fill('asian-row', (await api('/discover/tv?with_original_language=zh|ja|th')).results);
+    fill('action-row', (await api('/discover/movie?with_genres=28')).results);
+    fill('scifi-row', (await api('/discover/movie?with_genres=878')).results);
+    fill('anime-row', (await api('/discover/tv?with_genres=16')).results);
+    document.getElementById('loader').style.display="none";
+}
+
+function fill(id,data){ const r=document.getElementById(id); if(r) data.forEach(i=>{
+    if(!i.poster_path) return;
+    const c=document.createElement('div'); c.className='card'; c.tabIndex=0;
+    c.innerHTML=`<img src="${POSTER+i.poster_path}"><div class="card-name">${i.title||i.name}</div>`;
+    c.onclick=()=>{ curEp={s:1,e:1}; openM(i); };
+    r.appendChild(c);
+});}
+
+function setHero(i){
+    const h=document.getElementById('hero');
+    h.style.backgroundImage=`url(${IMG+(i.backdrop_path||i.poster_path)})`;
+    h.innerHTML=`<div class="hero-overlay"></div><div class="hero-body">
+        <h1>${i.title||i.name}</h1>
+        <p style="color:#ccc;margin:15px 0;">${i.overview.slice(0,140)}...</p>
+        <button class="btn-red" style="width:auto;padding:12px 40px;" tabindex="0" onclick='openM(${JSON.stringify(i).replace(/'/g,"")})'>WATCH NOW</button>
+    </div>`;
+}
+
+function closeM(){ 
+    exitFullscreen();
+    document.getElementById('pModal').style.display='none'; 
+    document.getElementById('frame').src=''; 
+    document.body.style.overflow='auto'; 
 }
 
 function toggleSearch(){
     const s=document.getElementById('searchView');
-    if(s.style.display!=='block'){ s.style.display='block'; document.getElementById('searchInput').focus(); }
-    else closeSearch();
+    s.style.display = (s.style.display === 'block') ? 'none' : 'block';
+    if(s.style.display === 'block') document.getElementById('searchInput').focus();
 }
 
-document.getElementById('searchInput').oninput=async (e)=>{
-    if(e.target.value.length<3) return;
-    const d=await api(`/search/multi?query=${e.target.value}`);
-    const r=document.getElementById('searchRes'); r.innerHTML='';
-    d.results.forEach(i=>{ if(i.poster_path){ fillItem(r,i); r.lastChild.onclick=()=>{ closeSearch(); openM(i); }; }});
-};
-
-function closeM(){ document.getElementById('pModal').style.display='none'; document.getElementById('frame').src=''; document.body.style.overflow='auto'; }
-function closeSearch(){ document.getElementById('searchView').style.display='none'; }
+// Global D-Pad Fix
+document.addEventListener('keydown', (e)=>{
+    const focusables = Array.from(document.querySelectorAll('[tabindex="0"]')).filter(el => el.offsetParent !== null);
+    const index = focusables.indexOf(document.activeElement);
+    if(e.key === "ArrowRight" && index < focusables.length - 1) focusables[index+1].focus();
+    if(e.key === "ArrowLeft" && index > 0) focusables[index-1].focus();
+    if(e.key === "Enter") document.activeElement.click();
+});
 
 init();
 </script>
